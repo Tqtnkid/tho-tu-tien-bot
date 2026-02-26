@@ -5,7 +5,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const TOKEN = "YOUR_BOT_TOKEN";
+const TOKEN = process.env.TOKEN;
 
 // ===== DATA =====
 let data = {};
