@@ -43,7 +43,7 @@ const rest = new REST({ version: '10' }).setToken(token);
 })();
 
 client.once('ready', () => {
-    console.log(Bot online: ${client.user.tag});
+    console.log(`bot online! ${client.user.tag}`);
 });
 
 client.on('interactionCreate', async interaction => {
