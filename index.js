@@ -36,8 +36,7 @@ const rest = new REST({ version: '10' }).setToken(token);
   Routes.applicationCommands(clientId),
   { body: commands }
 );
-        );
-        console.log('Đã đăng ký slash command.');
+ console.log('Đã đăng ký slash command.');
     } catch (error) {
         console.error(error);
     }
