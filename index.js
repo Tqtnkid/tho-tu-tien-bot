@@ -33,8 +33,9 @@ const rest = new REST({ version: '10' }).setToken(token);
 (async () => {
     try {
         await rest.put(
-            Routes.applicationGuildCommands(clientId),
-            { body: commands }
+  Routes.applicationCommands(clientId),
+  { body: commands }
+);
         );
         console.log('Đã đăng ký slash command.');
     } catch (error) {
