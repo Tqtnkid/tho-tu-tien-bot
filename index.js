@@ -37,8 +37,8 @@ client.once("clientReady", async () => {
     { name: "dotpha", description: "🔥 Đột phá cảnh giới" }
   ];
 
-  await client.guilds.cache.get("1454506037179715769")?.commands.set(commands);
-  console.log("✅ Đã đăng ký slash command!");
+  await client.application.commands.set([]);
+  console.log("🧹 Đã xoá toàn bộ global commands!");
 });
 
 client.on("interactionCreate", async interaction => {
