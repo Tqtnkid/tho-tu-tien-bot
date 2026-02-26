@@ -81,12 +81,17 @@ client.on('interactionCreate', async interaction => {
 
         userData.lastCheckIn = now.getTime();
         userData.linhThach += 1;
-        userData.exp += Math.floor(Math.random() * 91) + 10;
+        const rewardExp = Math.floor(Math.random() * 151) + 50;
+userData.exp += rewardExp;
 
         saveData(users);
 
         return interaction.reply({
-            content: `📅 Điểm danh thành công!\n💎 +1 Linh Thạch\n📈 +EXP ngẫu nhiên`,
+            content: `📅 Điểm danh thành công!
+💎 +1 Linh Thạch
+📈 +${rewardExp} EXP
+
+🔥 Tổng EXP hiện tại: ${userData.exp}`,
         });
     }
 });
