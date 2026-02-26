@@ -102,9 +102,9 @@ client.on("interactionCreate", async interaction => {
       .sort((a, b) => b[1].exp - a[1].exp)
       .slice(0, 5);
 
-    let msg =`🏆 Top Tu Vi:\n`;
+    let msg = `🏆 Top Tu Vi:\n`;
     sorted.forEach((p, i) => {
-      msg += ${i + 1}. <@${p[0]}> - ${p[1].exp} exp 🔥\n;
+      msg += `${i + 1}. <@${p[0]}> - ${p[1].exp} exp 🔥\n`;
     });
 
     return interaction.reply(msg);
