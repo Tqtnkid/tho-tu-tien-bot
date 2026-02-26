@@ -23,14 +23,7 @@ function saveData(data) {
 
 let players = loadData();
 
-const realms = [
-  "Luyện Khí",
-  "Trúc Cơ",
-  "Kim Đan",
-  "Nguyên Anh",
-  "Hóa Thần"
-];
-
+const realms = ["Luyện Khí", "Trúc Cơ", "Kim Đan", "Nguyên Anh", "Hóa Thần"];
 const MAX_EXP = 1000;
 
 client.once("clientReady", async () => {
@@ -38,7 +31,7 @@ client.once("clientReady", async () => {
 
   const commands = [
     { name: "diemdanh", description: "📅 Điểm danh mỗi ngày" },
-    { name: "haiduocthai", description: "🌿 Hái dược (2 tiếng)" },
+    { name: "haiduocthai", description: "🌿 Hái dược 2 tiếng" },
     { name: "check", description: "📜 Xem tu vi" },
     { name: "top", description: "🏆 Top tu vi" },
     { name: "dotpha", description: "🔥 Đột phá cảnh giới" }
@@ -64,24 +57,23 @@ client.on("interactionCreate", async interaction => {
   }
 
   const user = players[userId];
+  const now = Date.now();
 
   // 📅 Điểm danh
   if (interaction.commandName === "diemdanh") {
-    const now = Date.now();
     if (now - user.lastDaily < 86400000)
       return interaction.reply("⏳ Bạn đã điểm danh hôm nay rồi!");
 
-    user.stone += 1;
+    user.stone += 100;
     user.exp += 100;
     user.lastDaily = now;
     saveData(players);
 
-    return interaction.reply("📅 Điểm danh thành công! +1 linh thạch 💎 +100 exp 🔥");
+    return interaction.reply📅 Điểm danh thành công! +100 linh thạch 💎 +100 exp 🔥`);
   }
 
   // 🌿 Hái dược
   if (interaction.commandName === "haiduocthai") {
-    const now = Date.now();
     if (now - user.lastHerb < 7200000)
       return interaction.reply("⏳ Chưa đủ 2 tiếng để hái tiếp!");
 
@@ -91,13 +83,16 @@ client.on("interactionCreate", async interaction => {
     user.lastHerb = now;
     saveData(players);
 
-    return interaction.reply(`🌿 Bạn hái được ${reward} linh thạch 💎 +50 exp 🔥`);
+    return interaction.reply🌿 Bạn hái được ${reward} linh thạch 💎 và +50 exp 🔥`);
   }
 
   // 📜 Check
   if (interaction.commandName === "check") {
     return interaction.reply(
-     📜 Tu vi của bạn:\n🔥 Cảnh giới: ${realms[user.realm]}\n✨ EXP: ${user.exp}/${MAX_EXP}\n💎 Linh thạch: ${user.stone}`
+      `📜 Tu vi của bạn:
+🔥 Cảnh giới: ${realms[user.realm]}
+✨ EXP: ${user.exp}/${MAX_EXP}
+💎 Linh thạch: ${user.stone}`
     );
   }
 
@@ -107,7 +102,7 @@ client.on("interactionCreate", async interaction => {
       .sort((a, b) => b[1].exp - a[1].exp)
       .slice(0, 5);
 
-    let msg = "🏆 Top Tu Vi:\n";
+    let msg =🏆 Top Tu Vi:\n`;
     sorted.forEach((p, i) => {
       msg += ${i + 1}. <@${p[0]}> - ${p[1].exp} exp 🔥\n;
     });
@@ -123,10 +118,14 @@ client.on("interactionCreate", async interaction => {
     const success = Math.random() < 0.5;
 
     if (success) {
-      user.realm += 1;
-      user.exp = 0;
-      saveData(players);
-      return interaction.reply🎉 Đột phá thành công! Bạn đã lên ${realms[user.realm]} 🔥`);
+      if (user.realm < realms.length - 1) {
+        user.realm += 1;
+        user.exp = 0;
+        saveData(players);
+        return interaction.reply🎉 Đột phá thành công! Bạn đã lên ${realms[user.realm]} 🔥`);
+      } else {
+        return interaction.reply("🌟 Bạn đã đạt cảnh giới cao nhất!");
+      }
     } else {
       const loss = Math.floor(user.exp * (Math.random() * 0.05 + 0.05));
       user.exp -= loss;
