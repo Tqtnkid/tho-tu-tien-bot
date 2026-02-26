@@ -74,7 +74,7 @@ client.on('interactionCreate', async interaction => {
             const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
 
             return interaction.reply({
-                content: ⏳ Bạn đã điểm danh hôm nay rồi!\n🕔 Còn ${hours} giờ ${minutes} phút nữa sẽ được điểm danh lại.,
+                content: `⏳ Bạn đã điểm danh hôm nay rồi!\n🕔 Còn ${hours} giờ ${minutes} phút nữa sẽ được điểm danh lại.`,
                 ephemeral: true
             });
         }
@@ -86,7 +86,7 @@ client.on('interactionCreate', async interaction => {
         saveData(users);
 
         return interaction.reply({
-            content: 📅 Điểm danh thành công!\n💎 +1 Linh Thạch\n📈 +EXP ngẫu nhiên,
+            content: `📅 Điểm danh thành công!\n💎 +1 Linh Thạch\n📈 +EXP ngẫu nhiên`,
         });
     }
 });
