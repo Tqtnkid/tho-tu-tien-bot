@@ -64,12 +64,12 @@ client.on("interactionCreate", async interaction => {
     if (now - user.lastDaily < 86400000)
       return interaction.reply("⏳ Bạn đã điểm danh hôm nay rồi!");
 
-    user.stone += 100;
+    user.stone += 1;
     user.exp += 100;
     user.lastDaily = now;
     saveData(players);
 
-    return interaction.reply📅 Điểm danh thành công! +100 linh thạch 💎 +100 exp 🔥`);
+    return interaction.reply(`📅 Điểm danh thành công! +1 linh thạch 💎 +100 exp 🔥`);
   }
 
   // 🌿 Hái dược
@@ -83,7 +83,7 @@ client.on("interactionCreate", async interaction => {
     user.lastHerb = now;
     saveData(players);
 
-    return interaction.reply🌿 Bạn hái được ${reward} linh thạch 💎 và +50 exp 🔥`);
+    return interaction.reply(`🌿 Bạn hái được ${reward} linh thạch 💎 và +50 exp 🔥`);
   }
 
   // 📜 Check
@@ -122,7 +122,7 @@ client.on("interactionCreate", async interaction => {
         user.realm += 1;
         user.exp = 0;
         saveData(players);
-        return interaction.reply🎉 Đột phá thành công! Bạn đã lên ${realms[user.realm]} 🔥`);
+        return interaction.reply(`🎉 Đột phá thành công! Bạn đã lên ${realms[user.realm]} 🔥`);
       } else {
         return interaction.reply("🌟 Bạn đã đạt cảnh giới cao nhất!");
       }
@@ -130,7 +130,7 @@ client.on("interactionCreate", async interaction => {
       const loss = Math.floor(user.exp * (Math.random() * 0.05 + 0.05));
       user.exp -= loss;
       saveData(players);
-      return interaction.reply💥 Đột phá thất bại! Mất ${loss} exp 😭`);
+      return interaction.reply(`💥 Đột phá thất bại! Mất ${loss} exp 😭`);
     }
   }
 });
