@@ -1,14 +1,12 @@
 {
   "name": "tho-tu-tien-bot",
   "version": "1.0.0",
-  "description": "Bot tu tien",
   "main": "index.js",
-  "type": "commonjs",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
-    "@discordjs/rest": "^2.2.0"
+    "express": "^4.18.2"
   }
 }
