@@ -1,284 +1,138 @@
 const { Client, GatewayIntentBits } = require("discord.js");
+const express = require("express");
 const fs = require("fs");
+
+const app = express();
+app.get("/", (req, res) => res.send("🔥 Bot Tu Tiên đang chạy!"));
+app.listen(3000);
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const TOKEN = process.env.TOKEN;
+const DATA_FILE = "data.json";
 
-// ===== DATA =====
-let data = {};
-
-if (fs.existsSync("data.json")) {
-  data = JSON.parse(fs.readFileSync("data.json", "utf8"));
+function loadData() {
+  if (!fs.existsSync(DATA_FILE)) return {};
+  return JSON.parse(fs.readFileSync(DATA_FILE));
 }
 
-function saveData() {
-  fs.writeFileSync("data.json", JSON.stringify(data, null, 2));
+function saveData(data) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-function getUser(id) {
-  if (!data[id]) {
-    data[id] = {
+let players = loadData();
+
+const realms = [
+  "Luyện Khí",
+  "Trúc Cơ",
+  "Kim Đan",
+  "Nguyên Anh",
+  "Hóa Thần"
+];
+
+const MAX_EXP = 1000;
+
+client.once("clientReady", async () => {
+  console.log("🔥 Bot đã online!");
+
+  const commands = [
+    { name: "diemdanh", description: "📅 Điểm danh mỗi ngày" },
+    { name: "haiduocthai", description: "🌿 Hái dược (2 tiếng)" },
+    { name: "check", description: "📜 Xem tu vi" },
+    { name: "top", description: "🏆 Top tu vi" },
+    { name: "dotpha", description: "🔥 Đột phá cảnh giới" }
+  ];
+
+  await client.application.commands.set(commands);
+  console.log("✅ Đã đăng ký slash command!");
+});
+
+client.on("interactionCreate", async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const userId = interaction.user.id;
+
+  if (!players[userId]) {
+    players[userId] = {
       exp: 0,
-      linhThach: 0,
       realm: 0,
+      stone: 0,
       lastDaily: 0,
       lastHerb: 0
     };
   }
-  return data[id];
-}
 
-// ===== CẢNH GIỚI =====
-const realms = [
-  { name: "Phàm Nhân", min: 0 },
-  { name: "Luyện Khí", min: 500 },
-  { name: "Trúc Cơ", min: 1500 },
-  { name: "Kim Đan", min: 3000 },
-  { name: "Nguyên Anh", min: 6000 },
-  { name: "Hóa Thần", min: 12000 }
-];
+  const user = players[userId];
 
-function canDaily(user) {
-  const now = new Date();
-  const reset = new Date();
-  reset.setHours(5, 0, 0, 0);
-  if (now < reset) reset.setDate(reset.getDate() - 1);
-  return !user.lastDaily || user.lastDaily < reset.getTime();
-}
-
-// ===== READY =====
-client.once("ready", () => {
-  console.log("🔥 Bot Tu Tiên đã online!");
-});
-
-// ===== COMMAND =====
-client.on("interactionCreate", async interaction => {
-
-  if (!interaction.isChatInputCommand()) return;
-
-  const id = interaction.user.id;
-  const user = getUser(id);
-
-  // ===== ĐIỂM DANH =====
+  // 📅 Điểm danh
   if (interaction.commandName === "diemdanh") {
-
-    if (!canDaily(user)) {
-      return interaction.reply({ content: "❌ Bạn đã điểm danh hôm nay. 5h sáng quay lại nhé." });
-    }
-
-    const reward = Math.floor(Math.random() * 151) + 50;
-
-    user.exp += reward;
-    user.lastDaily = Date.now();
-
-    saveData();
-
-    return interaction.reply({
-      content: "🌅 Điểm danh thành công!\n✨ +" + reward + " EXP\n🧘 Tu vi: " + user.exp
-    });
-  }
-
-  // ===== HÁI DƯỢC =====
-  if (interaction.commandName === "haidược") {
-
-    const cooldown = 7200000;
     const now = Date.now();
+    if (now - user.lastDaily < 86400000)
+      return interaction.reply("⏳ Bạn đã điểm danh hôm nay rồi!");
 
-    if (user.lastHerb && now - user.lastHerb < cooldown) {
+    user.stone += 100;
+    user.exp += 100;
+    user.lastDaily = now;
+    saveData(players);
 
-      const timeLeft = cooldown - (now - user.lastHerb);
-      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-
-      return interaction.reply({
-        content: "⏳ Còn " + hours + "h " + minutes + "p nữa mới hái tiếp được."
-      });
-    }
-
-    const rewardExp = Math.floor(Math.random() * 201) + 100;
-    const rewardStone = Math.floor(Math.random() * 3) + 1;
-
-    user.exp += rewardExp;
-    user.linhThach += rewardStone;
-    user.lastHerb = now;
-
-    saveData();
-
-    return interaction.reply({
-      content:
-        "🌿 Hái dược thành công!\n✨ +" + rewardExp +
-        " EXP\n💎 +" + rewardStone +
-        " Linh Thạch\n\n🧘 Tu vi: " +
-        user.exp + "\n💰 Linh Thạch: " + user.linhThach
-    });
+    return interaction.reply("📅 Điểm danh thành công! +100 linh thạch 💎 +100 exp 🔥");
   }
 
-  // ===== ĐỘT PHÁ =====
+  // 🌿 Hái dược
+  if (interaction.commandName === "haiduocthai") {
+    const now = Date.now();
+    if (now - user.lastHerb < 7200000)
+      return interaction.reply("⏳ Chưa đủ 2 tiếng để hái tiếp!");
+
+    const reward = Math.floor(Math.random() * 3) + 1;
+    user.stone += reward;
+    user.exp += 50;
+    user.lastHerb = now;
+    saveData(players);
+
+    return interaction.reply🌿 Bạn hái được ${reward} linh thạch 💎 +50 exp 🔥`);
+  }
+
+  // 📜 Check
+  if (interaction.commandName === "check") {
+    return interaction.reply(
+     📜 Tu vi của bạn:\n🔥 Cảnh giới: ${realms[user.realm]}\n✨ EXP: ${user.exp}/${MAX_EXP}\n💎 Linh thạch: ${user.stone}`
+    );
+  }
+
+  // 🏆 Top
+  if (interaction.commandName === "top") {
+    const sorted = Object.entries(players)
+      .sort((a, b) => b[1].exp - a[1].exp)
+      .slice(0, 5);
+
+    let msg = "🏆 Top Tu Vi:\n";
+    sorted.forEach((p, i) => {
+      msg += ${i + 1}. <@${p[0]}> - ${p[1].exp} exp 🔥\n;
+    });
+
+    return interaction.reply(msg);
+  }
+
+  // 🔥 Đột phá
   if (interaction.commandName === "dotpha") {
-
-    if (user.realm >= realms.length - 1) {
-      return interaction.reply({ content: "🌌 Bạn đã đạt cảnh giới tối cao!" });
-    }
-
-    const nextRealm = realms[user.realm + 1];
-
-    if (user.exp < nextRealm.min) {
-      return interaction.reply({
-        content: "❌ Cần " + nextRealm.min + " EXP để đột phá " + nextRealm.name
-      });
-    }
+    if (user.exp < MAX_EXP)
+      return interaction.reply("❌ Chưa đủ exp để đột phá!");
 
     const success = Math.random() < 0.5;
 
     if (success) {
-
       user.realm += 1;
-      saveData();
-
-      return interaction.reply({
-        content:
-          "🌟 ĐỘT PHÁ THÀNH CÔNG!\n🔥 " +
-          realms[user.realm - 1].name +
-          " ➜ " +
-          realms[user.realm].name
-      });
-
+      user.exp = 0;
+      saveData(players);
+      return interaction.reply🎉 Đột phá thành công! Bạn đã lên ${realms[user.realm]} 🔥`);
     } else {
-
-      const currentMin = realms[user.realm].min;
-      const nextMin = realms[user.realm + 1].min;
-
-      const range = nextMin - currentMin;
-      const percent = Math.random() * 0.05 + 0.05;
-      const loss = Math.floor(range * percent);
-
+      const loss = Math.floor(user.exp * (Math.random() * 0.05 + 0.05));
       user.exp -= loss;
-      if (user.exp < currentMin) user.exp = currentMin;
-
-      saveData();
-
-      return interaction.reply({
-        content:
-          "💥 ĐỘT PHÁ THẤT BẠI!\n⚡ Mất " +
-          loss + " EXP\n🧘 Tu vi còn: " + user.exp
-      });
+      saveData(players);
+      return interaction.reply💥 Đột phá thất bại! Mất ${loss} exp 😭`);
     }
-  }
-
-  // ===== CHECK =====
-  if (interaction.commandName === "check") {
-
-    return interaction.reply({
-      content:
-        "📊 Thông tin tu luyện\n\n🧘 Tu vi: " +
-        user.exp +
-        "\n🔥 Cảnh giới: " +
-        realms[user.realm].name +
-        "\n💎 Linh Thạch: " +
-        user.linhThach
-    });
-  }
-
-  // ===== TOP =====
-  if (interaction.commandName === "top") {
-
-    const sorted = Object.entries(data)
-      .sort((a, b) => b[1].exp - a[1].exp)
-      .slice(0, 10);
-
-    let msg = "🏆 BẢNG XẾP HẠNG TU VI 🏆\n\n";
-
-    for (let i = 0; i < sorted.length; i++) {
-
-      const userId = sorted[i][0];
-      const u = sorted[i][1];
-
-      msg +=
-        "#" + (i + 1) +
-        " <@" + userId + ">\n🧘 " +
-        u.exp +
-        " EXP | 🔥 " +
-        realms[u.realm].name + "\n\n";
-    }
-
-    return interaction.reply({ content: msg });
-  }
-
-});
-
-const { Client, GatewayIntentBits } = require("discord.js");
-const express = require("express");
-
-const app = express();
-
-// Web server giả cho Railway
-app.get("/", (req, res) => {
-  res.send("🔥 Bot Tu Tiên đang chạy!");
-});
-
-app.listen(3000, () => {
-  console.log("🌐 Web server giả đang chạy");
-});
-
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
-});
-
-client.once("clientReady", async () => {
-  console.log("🔥 Bot Tu Tiên đã online!");
-
-  const commands = [
-    {
-      name: "diemdanh",
-      description: "📅 Điểm danh nhận linh thạch mỗi ngày"
-    },
-    {
-      name: "check",
-      description: "📜 Xem tu vi và cảnh giới hiện tại"
-    },
-    {
-      name: "haiduocthai",
-      description: "🌿 Hái dược (2 tiếng 1 lần)"
-    },
-    {
-      name: "top",
-      description: "🏆 Xem top tu vi toàn server"
-    },
-    {
-      name: "dotpha",
-      description: "🔥 Đột phá cảnh giới (50% thành công)"
-    }
-  ];
-
-  await client.application.commands.set(commands);
-
-  console.log("✅ Đã đăng ký toàn bộ slash command!");
-});
-
-client.on("interactionCreate", async interaction => {
-  if (!interaction.isChatInputCommand()) return;
-
-  if (interaction.commandName === "diemdanh") {
-    await interaction.reply("📅 Bạn đã điểm danh và nhận được 100 linh thạch!");
-  }
-
-  if (interaction.commandName === "check") {
-    await interaction.reply("📜 Tu vi của bạn: Luyện Khí Tầng 1 🔥");
-  }
-
-  if (interaction.commandName === "haiduocthai") {
-    await interaction.reply("🌿 Bạn đã hái được một cây linh thảo quý hiếm!");
-  }
-
-  if (interaction.commandName === "top") {
-    await interaction.reply("🏆 Top tu vi hiện tại: (đang cập nhật...)");
-  }
-
-  if (interaction.commandName === "dotpha") {
-    await interaction.reply("🔥 Bạn thử đột phá... KẾT QUẢ: Thành công! 🎉");
   }
 });
 
