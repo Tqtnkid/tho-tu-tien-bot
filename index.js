@@ -5,22 +5,33 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const TOKEN = "DÁN_TOKEN_BẠN_VÀO_ĐÂY";
+const TOKEN = "YOUR_BOT_TOKEN";
 
-// ================= DATA =================
-
+// ===== DATA =====
 let data = {};
 
 if (fs.existsSync("data.json")) {
-  data = JSON.parse(fs.readFileSync("data.json"));
+  data = JSON.parse(fs.readFileSync("data.json", "utf8"));
 }
 
 function saveData() {
   fs.writeFileSync("data.json", JSON.stringify(data, null, 2));
 }
 
-// ================= CẢNH GIỚI =================
+function getUser(id) {
+  if (!data[id]) {
+    data[id] = {
+      exp: 0,
+      linhThach: 0,
+      realm: 0,
+      lastDaily: 0,
+      lastHerb: 0
+    };
+  }
+  return data[id];
+}
 
+// ===== CẢNH GIỚI =====
 const realms = [
   { name: "Phàm Nhân", min: 0 },
   { name: "Luyện Khí", min: 500 },
@@ -38,27 +49,12 @@ function canDaily(user) {
   return !user.lastDaily || user.lastDaily < reset.getTime();
 }
 
-function getUser(id) {
-  if (!data[id]) {
-    data[id] = {
-      exp: 0,
-      linhThach: 0,
-      realm: 0,
-      lastDaily: 0,
-      lastHerb: 0
-    };
-  }
-  return data[id];
-}
-
-// ================= BOT READY =================
-
+// ===== READY =====
 client.once("ready", () => {
-  console.log("Bot Tu Tiên đã online 🔥");
+  console.log("🔥 Bot Tu Tiên đã online!");
 });
 
-// ================= COMMAND =================
-
+// ===== COMMAND =====
 client.on("interactionCreate", async interaction => {
 
   if (!interaction.isChatInputCommand()) return;
@@ -66,12 +62,11 @@ client.on("interactionCreate", async interaction => {
   const id = interaction.user.id;
   const user = getUser(id);
 
-  // ================= DIEM DANH =================
-
+  // ===== ĐIỂM DANH =====
   if (interaction.commandName === "diemdanh") {
 
     if (!canDaily(user)) {
-      return interaction.reply("❌ Đã điểm danh hôm nay. 5h sáng quay lại.");
+      return interaction.reply({ content: "❌ Bạn đã điểm danh hôm nay. 5h sáng quay lại nhé." });
     }
 
     const reward = Math.floor(Math.random() * 151) + 50;
@@ -81,13 +76,12 @@ client.on("interactionCreate", async interaction => {
 
     saveData();
 
-    return interaction.reply(
-      🌅 Điểm danh thành công!\n✨ +${reward} EXP\n🧘 Tu vi: ${user.exp}
-    );
+    return interaction.reply({
+      content: "🌅 Điểm danh thành công!\n✨ +" + reward + " EXP\n🧘 Tu vi: " + user.exp
+    });
   }
 
-  // ================= HAI DUOC =================
-
+  // ===== HÁI DƯỢC =====
   if (interaction.commandName === "haidược") {
 
     const cooldown = 7200000;
@@ -99,9 +93,9 @@ client.on("interactionCreate", async interaction => {
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
 
-      return interaction.reply(
-       🌿 Còn ${hours}h ${minutes}p nữa mới hái tiếp được.`
-      );
+      return interaction.reply({
+        content: "⏳ Còn " + hours + "h " + minutes + "p nữa mới hái tiếp được."
+      });
     }
 
     const rewardExp = Math.floor(Math.random() * 201) + 100;
@@ -113,29 +107,28 @@ client.on("interactionCreate", async interaction => {
 
     saveData();
 
-    return interaction.reply(
-     🌿 Hái dược thành công!\n` +
-      ✨ +${rewardExp} EXP\n +
-     💎 +${rewardStone} Linh Thạch\n\n` +
-     🧘 Tu vi: ${user.exp}\n` +
-     💰 Linh Thạch: ${user.linhThach}`
-    );
+    return interaction.reply({
+      content:
+        "🌿 Hái dược thành công!\n✨ +" + rewardExp +
+        " EXP\n💎 +" + rewardStone +
+        " Linh Thạch\n\n🧘 Tu vi: " +
+        user.exp + "\n💰 Linh Thạch: " + user.linhThach
+    });
   }
 
-  // ================= DOT PHA =================
-
+  // ===== ĐỘT PHÁ =====
   if (interaction.commandName === "dotpha") {
 
     if (user.realm >= realms.length - 1) {
-      return interaction.reply("🌌 Đã đạt cảnh giới tối cao!");
+      return interaction.reply({ content: "🌌 Bạn đã đạt cảnh giới tối cao!" });
     }
 
     const nextRealm = realms[user.realm + 1];
 
     if (user.exp < nextRealm.min) {
-      return interaction.reply(
-        ❌ Cần ${nextRealm.min} EXP để đột phá ${nextRealm.name}
-      );
+      return interaction.reply({
+        content: "❌ Cần " + nextRealm.min + " EXP để đột phá " + nextRealm.name
+      });
     }
 
     const success = Math.random() < 0.5;
@@ -145,16 +138,20 @@ client.on("interactionCreate", async interaction => {
       user.realm += 1;
       saveData();
 
-      return interaction.reply(
-       🌟 ĐỘT PHÁ THÀNH CÔNG!\n🔥 ${realms[user.realm - 1].name} ➜ ${realms[user.realm].name}`
-      );
+      return interaction.reply({
+        content:
+          "🌟 ĐỘT PHÁ THÀNH CÔNG!\n🔥 " +
+          realms[user.realm - 1].name +
+          " ➜ " +
+          realms[user.realm].name
+      });
 
     } else {
 
       const currentMin = realms[user.realm].min;
-      const nextMin2 = realms[user.realm + 1].min;
+      const nextMin = realms[user.realm + 1].min;
 
-      const range = nextMin2 - currentMin;
+      const range = nextMin - currentMin;
       const percent = Math.random() * 0.05 + 0.05;
       const loss = Math.floor(range * percent);
 
@@ -163,25 +160,29 @@ client.on("interactionCreate", async interaction => {
 
       saveData();
 
-      return interaction.reply(
-       💥 Đột phá thất bại!\n⚡ Mất ${loss} EXP\n🧘 Tu vi còn: ${user.exp}`
-      );
+      return interaction.reply({
+        content:
+          "💥 ĐỘT PHÁ THẤT BẠI!\n⚡ Mất " +
+          loss + " EXP\n🧘 Tu vi còn: " + user.exp
+      });
     }
   }
 
-  // ================= CHECK =================
-
+  // ===== CHECK =====
   if (interaction.commandName === "check") {
 
-    return interaction.reply(
-     🧘 Tu vi: ${user.exp}\n` +
-     🔥 Cảnh giới: ${realms[user.realm].name}\n` +
-     💎 Linh Thạch: ${user.linhThach}`
-    );
+    return interaction.reply({
+      content:
+        "📊 Thông tin tu luyện\n\n🧘 Tu vi: " +
+        user.exp +
+        "\n🔥 Cảnh giới: " +
+        realms[user.realm].name +
+        "\n💎 Linh Thạch: " +
+        user.linhThach
+    });
   }
 
-  // ================= TOP =================
-
+  // ===== TOP =====
   if (interaction.commandName === "top") {
 
     const sorted = Object.entries(data)
@@ -196,11 +197,14 @@ client.on("interactionCreate", async interaction => {
       const u = sorted[i][1];
 
       msg +=
-        #${i + 1} <@${userId}>\n +
-       🧘 ${u.exp} EXP | 🔥 ${realms[u.realm].name}\n\n`;
+        "#" + (i + 1) +
+        " <@" + userId + ">\n🧘 " +
+        u.exp +
+        " EXP | 🔥 " +
+        realms[u.realm].name + "\n\n";
     }
 
-    return interaction.reply(msg);
+    return interaction.reply({ content: msg });
   }
 
 });
