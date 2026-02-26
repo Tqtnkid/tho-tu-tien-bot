@@ -209,4 +209,32 @@ client.on("interactionCreate", async interaction => {
 
 });
 
+client.once("ready", async () => {
+  const commands = [
+    {
+      name: "diemdanh",
+      description: "📅 Điểm danh nhận linh thạch mỗi ngày"
+    },
+    {
+      name: "check",
+      description: "📜 Xem tu vi và cảnh giới hiện tại"
+    },
+    {
+      name: "haiduocthai",
+      description: "🌿 Hái dược (2 tiếng 1 lần)"
+    },
+    {
+      name: "top",
+      description: "🏆 Xem top tu vi toàn server"
+    },
+    {
+      name: "dotpha",
+      description: "🔥 Đột phá cảnh giới (50% thành công)"
+    }
+  ];
+
+  await client.application.commands.set(commands);
+  console.log("✅ Đã đăng ký toàn bộ slash command!");
+});
+
 client.login(TOKEN);
