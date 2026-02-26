@@ -31,7 +31,7 @@ client.once("clientReady", async () => {
 
   const commands = [
     { name: "diemdanh", description: "📅 Điểm danh mỗi ngày" },
-    { name: "haiduocthai", description: "🌿 Hái dược 2 tiếng" },
+    { name: "haiduoc", description: "🌿 Hái dược 2 tiếng" },
     { name: "check", description: "📜 Xem tu vi" },
     { name: "top", description: "🏆 Top tu vi" },
     { name: "dotpha", description: "🔥 Đột phá cảnh giới" }
@@ -73,7 +73,7 @@ client.on("interactionCreate", async interaction => {
   }
 
   // 🌿 Hái dược
-  if (interaction.commandName === "haiduocthai") {
+  if (interaction.commandName === "haiduoc") {
     if (now - user.lastHerb < 7200000)
       return interaction.reply("⏳ Chưa đủ 2 tiếng để hái tiếp!");
 
