@@ -71,12 +71,12 @@ client.on("interactionCreate", async interaction => {
     if (now - user.lastDaily < 86400000)
       return interaction.reply("⏳ Bạn đã điểm danh hôm nay rồi!");
 
-    user.stone += 100;
+    user.stone += 1;
     user.exp += 100;
     user.lastDaily = now;
     saveData(players);
 
-    return interaction.reply("📅 Điểm danh thành công! +100 linh thạch 💎 +100 exp 🔥");
+    return interaction.reply("📅 Điểm danh thành công! +1 linh thạch 💎 +100 exp 🔥");
   }
 
   // 🌿 Hái dược
@@ -91,7 +91,7 @@ client.on("interactionCreate", async interaction => {
     user.lastHerb = now;
     saveData(players);
 
-    return interaction.reply🌿 Bạn hái được ${reward} linh thạch 💎 +50 exp 🔥`);
+    return interaction.reply(`🌿 Bạn hái được ${reward} linh thạch 💎 +50 exp 🔥`);
   }
 
   // 📜 Check
