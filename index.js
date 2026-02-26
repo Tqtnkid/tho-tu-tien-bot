@@ -59,7 +59,7 @@ client.on('interactionCreate', async interaction => {
         }
 
         const userData = users[userId];
-        const now = new Date();
+        const now = new Date(Date.now() + 7 * 60 * 60 * 1000);
 
         let nextReset = new Date();
         nextReset.setHours(5, 0, 0, 0);
