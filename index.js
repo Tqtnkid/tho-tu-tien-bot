@@ -142,18 +142,24 @@ return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} 
   }
 
   // 🏆 Top
-  if (interaction.commandName === "top") {
-    const sorted = Object.entries(players)
-      .sort((a, b) => b[1].exp - a[1].exp)
-      .slice(0, 5);
+if (interaction.commandName === "top") {
 
-    let msg =`🏆 Top Tu Vi:\n`;
-    sorted.forEach((p, i) => {
-      msg += `${i + 1}. <@${p[0]}> - ${p[1].exp} exp 🔥\n`;
+    const topPlayers = await Player.find()
+        .sort({ exp: -1 })
+        .limit(5);
+
+    if (topPlayers.length === 0) {
+        return interaction.reply("Chưa có ai tu luyện.");
+    }
+
+    let msg = "🏆 Top Tu Vi:\n\n";
+
+    topPlayers.forEach((p, i) => {
+        msg += `${i + 1}. <@${p.userId}> - ${p.exp} exp 🔥\n`;
     });
 
     return interaction.reply(msg);
-  }
+}
 
 // ⚔️ Attack quái
 if (interaction.commandName === "attack") {
