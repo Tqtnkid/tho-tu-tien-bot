@@ -21,6 +21,7 @@ mongoose.connect(process.env.MONGO_URL)
 
 const playerSchema = new mongoose.Schema({
     userId: String,
+    lastdiemdanh: { type: date, default: null },
     linhthach: { type: Number, default: 0 },
     lastdaily: { type: Number, default: 0 },
     exp: { type: Number, default: 0 },
@@ -98,41 +99,56 @@ if (!user) {
   const now = Date.now();
 
   // 📅 Điểm danh
-if (interaction.commandName === "diemdanh") {
+ if (commandName === "diemdanh") {
 
-    const now = Date.now();
+        let player = await Player.findOne({ userId: interaction.user.id });
 
-    let player = await Player.findOne({ userId: interaction.user.id });
+        // Nếu chưa có nhân vật thì tạo mới
+        if (!player) {
+            player = await Player.create({
+                userId: interaction.user.id,
+                level: 1,
+                exp: 0,
+                linhthach: 0,
+                lastDiemDanh: null
+            });
+        }
 
-    // Nếu chưa có dữ liệu thì tạo mới
-    if (!player) {
-        player = await Player.create({
-            userId: interaction.user.id
-        });
+        const now = new Date();
+
+        // Kiểm tra đã điểm danh hôm nay chưa
+        if (player.lastDiemDanh) {
+            const last = new Date(player.lastDiemDanh);
+
+            const isSameDay =
+                now.getFullYear() === last.getFullYear() &&
+                now.getMonth() === last.getMonth() &&
+                now.getDate() === last.getDate();
+
+            if (isSameDay) {
+                return interaction.reply({
+                    content: "❌ Hôm nay bạn đã điểm danh rồi!",
+                    ephemeral: true
+                });
+            }
+        }
+
+        // 🎁 Random 1–2 linh thạch
+        const reward = Math.floor(Math.random() * 2) + 1;
+
+        // 🎁 Random 10–50 EXP
+        const expReward = Math.floor(Math.random() * 41) + 10;
+
+        player.linhthach += reward;
+        player.exp += expReward;
+        player.lastDiemDanh = now;
+
+        await player.save();
+
+        return interaction.reply(`📅 Điểm danh thành công!\n💎 +${reward} Linh Thạch\n🔥 +${expReward} EXP`
+        );
     }
-
-    // Nếu đã điểm danh trong 24h
-    if (now - player.lastDaily < 86400000) {
-        return interaction.reply("⏳ Bạn đã điểm danh hôm nay rồi!");
-    }
-
-    // Random thưởng
-    const linhthach = Math.floor(Math.random() * 2) + 1;   // 1–2 linh thạch
-    const exp = Math.floor(Math.random() * 91) + 10;       // 10–100 exp
-
-    // Cộng thưởng
-    player.linhthach += linhthach;
-    player.exp += exp;
-    player.lastDaily = now;
-
-    await player.save();
-
-    return interaction.reply(
-        `📅 Điểm danh thành công!\n` +
-        `💎 Nhận ${linhthach} linh thạch\n` +
-       `🔥 Nhận ${exp} EXP`
-    );
-}
+});
 
   // 🌿 Hái dược
   if (interaction.commandName === "haiduoc") {
