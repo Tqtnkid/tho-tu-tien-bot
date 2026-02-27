@@ -351,37 +351,33 @@ if (!user) {
 }
     
   // 🔥 Đột phá
- if (interaction.commandName === "dotpha") {
+ else if (commandName === "dotpha") {
+        const player = await Player.findOne({ userId: interaction.user.id });
 
-    let player = await Player.findOne({ userId: interaction.user.id });
-
-    if (!player) {
-        player = await Player.create({ userId: interaction.user.id });
-    }
-
-    if (player.exp < MAX_EXP) {
-        return interaction.reply("❌ Chưa đủ EXP để đột phá!");
-    }
-
-    const success = Math.random() < 0.5;
-
-    if (success) {
-
-        if (player.level < realms.length - 1) {
-
-            player.level += 1;
-            player.exp = 0;
-
-            await player.save(); // ✅ CHỈ CẦN CÁI NÀY
-
-            return interaction.reply("🎉 Đột phá thành công!");
-        } else {
-            return interaction.reply("🌟 Bạn đã đạt cảnh giới cao nhất!");
+        if (!player) {
+            return interaction.reply("❌ Bạn chưa có nhân vật!");
         }
 
-    } else {
-        return interaction.reply("💥 Đột phá thất bại!");
+        const rate = 0.5; // 50% tỉ lệ
+        const random = Math.random();
+
+        if (random < rate) {
+
+            if (player.level < 10) {
+                player.level += 1;
+                player.exp = 0;
+
+                await player.save();
+
+                return interaction.reply("🎉 Đột phá thành công!");
+            } else {
+                return interaction.reply("🌟 Bạn đã đạt cảnh giới cao nhất!");
+            }
+
+        } else {
+            return interaction.reply("💥 Đột phá thất bại!");
+        }
     }
- };
+});
 
 client.login(process.env.TOKEN);
