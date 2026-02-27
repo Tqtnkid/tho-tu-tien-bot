@@ -30,6 +30,7 @@ client.once("clientReady", async () => {
   console.log("🔥 Bot đã online!");
 
   const commands = [
+    { name: "attack", description: "⚔️ Đánh quái (3 lần mỗi ngày)" },
     { name: "diemdanh", description: "📅 Điểm danh mỗi ngày" },
     { name: "haiduoc", description: "🌿 Hái dược 2 tiếng" },
     { name: "check", description: "📜 Xem tu vi" },
@@ -41,6 +42,23 @@ client.once("clientReady", async () => {
 console.log("✅ Đăng ký lại guild commands");
 });
 
+function getToday5AM() {
+    const now = new Date();
+    
+    // GMT+7
+    const offset = 7 * 60; 
+    const local = new Date(now.getTime() + offset * 60000);
+
+    const reset = new Date(
+        local.getFullYear(),
+        local.getMonth(),
+        local.getDate(),
+        5, 0, 0
+    );
+
+    return reset.getTime() - offset * 60000;
+}
+
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -48,6 +66,8 @@ client.on("interactionCreate", async interaction => {
 
   if (!players[userId]) {
     players[userId] = {
+      dailyattackcount: 0,
+      lastattackreset: 0,
       exp: 0,
       realm: 0,
       stone: 0,
@@ -116,6 +136,57 @@ return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} 
 
     return interaction.reply(msg);
   }
+
+// ⚔️ Attack quái
+if (interaction.commandName === "attack") {
+
+    const userId = interaction.user.id;
+    const now = Date.now();
+
+    if (!players[userId]) {
+        players[userId] = {
+            stone: 0,
+            LastAttackReset: 0,
+            exp: 0,
+            lastDaily: 0,
+            lastHerb: 0,
+            dailyAttackCount: 0
+        };
+    }
+
+    const user = players[userId];
+  
+    if (!user.dailyAttackCount) user.dailyAttackCount = 0;
+    if (!user.lastAttackReset) user.lastAttackReset = 0;
+
+    const today5AM = getToday5AM();
+
+    // Nếu đã qua 5h sáng và chưa reset hôm nay
+    if (now >= today5AM && user.lastAttackReset < today5AM) {
+        user.dailyAttackCount = 0;
+        user.lastAttackReset = today5AM;
+    }
+
+    if (user.dailyAttackCount >= 3) {
+        return interaction.reply("⛔ Bạn đã đánh đủ 3 lần hôm nay rồi! Chờ 5h sáng reset.");
+    }
+
+    const stone = Math.floor(Math.random() * 4); // 0-3
+    const exp = Math.floor(Math.random() * (50 - 10 + 1)) + 10;
+
+    user.stone += stone;
+    user.exp += exp;
+    user.dailyAttackCount += 1;
+
+    saveData(players);
+
+    return interaction.reply(
+        `⚔️ Bạn đánh bại quái vật!\n` +
+        `💎 +${stone} linh thạch\n` +
+        `🔥 +${exp} EXP\n` +
+        `📊 Lượt còn lại hôm nay: ${3 - user.dailyAttackCount}/3`
+    );
+}
 
   // 🔥 Đột phá
   if (interaction.commandName === "dotpha") {
