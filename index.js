@@ -64,14 +64,13 @@ client.on("interactionCreate", async interaction => {
     if (now - user.lastDaily < 86400000)
       return interaction.reply("⏳ Bạn đã điểm danh hôm nay rồi!");
 
-   // 🎲 Random linh thạch 1-2
 const stone = Math.floor(Math.random() * 2) + 1;
-
-// 🎲 Random exp 10-100
 const exp = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
+    
 user.stone += stone;
 user.exp += exp;
 user.lastDaily = now;
+    
 saveData(data);
 
 return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} linh thạch\n🔥 Nhận ${exp} EXP`);
