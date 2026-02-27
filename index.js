@@ -126,9 +126,9 @@ return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} 
     user.exp += exp;
     user.lastHerb = now;
     
-    saveData(players);
+    await user.save();
 
-    return interaction.reply(`🌿 Bạn hái được Nhận ${reward}  linh thạch 💎 và Nhận ${exp} exp 🔥`);
+    return interaction.reply(`🌿 Bạn hái dược Nhận ${reward}  linh thạch 💎 và Nhận ${exp} exp 🔥`);
   }
 
   // 📜 Check
@@ -161,18 +161,20 @@ if (interaction.commandName === "attack") {
     const userId = interaction.user.id;
     const now = Date.now();
 
-    if (!players[userId]) {
-        players[userId] = {
-            stone: 0,
-            LastAttackReset: 0,
-            exp: 0,
-            lastDaily: 0,
-            lastHerb: 0,
-            dailyAttackCount: 0
-        };
-    }
+   let user = await Player.findOne({ userId });
 
-    const user = players[userId];
+if (!user) {
+    user = new Player({
+        userId: userId,
+        stone: 0,
+        exp: 0,
+        lastDaily: 0,
+        lastHerb: 0,
+        lastAttackReset: 0,
+        dailyAttackCount: 0
+    });
+    await user.save();
+}
   
     if (!user.dailyAttackCount) user.dailyAttackCount = 0;
     if (!user.lastAttackReset) user.lastAttackReset = 0;
@@ -196,7 +198,7 @@ if (interaction.commandName === "attack") {
     user.exp += exp;
     user.dailyAttackCount += 1;
 
-    saveData(players);
+    await user.save();
 
     return interaction.reply(
         `⚔️ Bạn đánh bại quái vật!\n` +
@@ -210,14 +212,20 @@ if (interaction.commandName === "gacha") {
 
     const userId = interaction.user.id;
 
-    if (!players[userId]) {
-        players[userId] = {
-            stone: 0,
-            inventory: []
-        };
-    }
+    let user = await Player.findOne({ userId });
 
-    const user = players[userId];
+if (!user) {
+    user = new Player({
+        userId: userId,
+        stone: 0,
+        exp: 0,
+        lastDaily: 0,
+        lastHerb: 0,
+        lastAttackReset: 0,
+        dailyAttackCount: 0
+    });
+    await user.save();
+}
     const amount = interaction.options.getInteger("amount");
 
     if (user.stone < amount) {
@@ -291,7 +299,7 @@ if (interaction.commandName === "gacha") {
                 )
                 .setColor(0xFFD700);
 
-            saveData(players);
+            await user.save();
 
             return interaction.reply({ embeds: [embed] });
         }
@@ -299,7 +307,7 @@ if (interaction.commandName === "gacha") {
         resultText += `✨ ${itemName} +${level} (${rarity}) - ⚔️ ${power}\n`;
     }
 
-    saveData(players);
+    await user.save();
 
     return interaction.reply(`🎲 Bạn quay ${amount} lần!\n\n${resultText}`
     );
@@ -324,7 +332,7 @@ if (interaction.commandName === "gacha") {
     } else {
       const loss = Math.floor(user.exp * (Math.random() * 0.05 + 0.05));
       user.exp -= loss;
-      saveData(players);
+      await user.save();
       return interaction.reply(`💥 Đột phá thất bại! Mất ${loss} exp 😭`);
     }
     }
