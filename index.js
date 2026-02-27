@@ -22,6 +22,7 @@ mongoose.connect(process.env.MONGO_URL)
 const playerSchema = new mongoose.Schema({
     userId: String,
     linhthach: { type: Number, default: 0 },
+    lastdaily: { type: Number, default: 0 },
     exp: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
     equipment: { type: Array, default: [] }
@@ -97,22 +98,41 @@ if (!user) {
   const now = Date.now();
 
   // 📅 Điểm danh
-  if (interaction.commandName === "diemdanh") {
-    if (now - user.lastDaily < 86400000)
-      return interaction.reply("⏳ Bạn đã điểm danh hôm nay rồi!");
+if (interaction.commandName === "diemdanh") {
 
-const stone = Math.floor(Math.random() * 2) + 1;
-const exp = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
-    
-user.stone += stone;
-user.exp += exp;
-user.lastDaily = now;
-    
-player.linhthach += 1;
-await player.save();
+    const now = Date.now();
 
-return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} linh thạch\n🔥 Nhận ${exp} EXP`);
-  }
+    let player = await Player.findOne({ userId: interaction.user.id });
+
+    // Nếu chưa có dữ liệu thì tạo mới
+    if (!player) {
+        player = await Player.create({
+            userId: interaction.user.id
+        });
+    }
+
+    // Nếu đã điểm danh trong 24h
+    if (now - player.lastDaily < 86400000) {
+        return interaction.reply("⏳ Bạn đã điểm danh hôm nay rồi!");
+    }
+
+    // Random thưởng
+    const linhthach = Math.floor(Math.random() * 2) + 1;   // 1–2 linh thạch
+    const exp = Math.floor(Math.random() * 91) + 10;       // 10–100 exp
+
+    // Cộng thưởng
+    player.linhthach += linhthach;
+    player.exp += exp;
+    player.lastDaily = now;
+
+    await player.save();
+
+    return interaction.reply(
+        `📅 Điểm danh thành công!\n` +
+        `💎 Nhận ${linhthach} linh thạch\n` +
+       `🔥 Nhận ${exp} EXP`
+    );
+}
 
   // 🌿 Hái dược
   if (interaction.commandName === "haiduoc") {
