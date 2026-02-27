@@ -71,7 +71,7 @@ user.stone += stone;
 user.exp += exp;
 user.lastDaily = now;
     
-saveData(data);
+saveData(players);
 
 return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} linh thạch\n🔥 Nhận ${exp} EXP`);
   }
