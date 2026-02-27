@@ -137,6 +137,7 @@ return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} 
       saveData(players);
       return interaction.reply(`💥 Đột phá thất bại! Mất ${loss} exp 😭`);
     }
+    }
   });
 
 client.login(process.env.TOKEN);
