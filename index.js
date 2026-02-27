@@ -42,11 +42,7 @@ client.once("clientReady", async () => {
             required: true,
             choices: [
                 { name: "1 lần", value: 1 },
-                { name: "10 lần", value: 10 }
-            ]
-        }
-    ]
-}
+                { name: "10 lần", value: 10 }]}]},
     { name: "attack", description: "⚔️ Đánh quái (3 lần mỗi ngày)" },
     { name: "diemdanh", description: "📅 Điểm danh mỗi ngày" },
     { name: "haiduoc", description: "🌿 Hái dược 2 tiếng" },
