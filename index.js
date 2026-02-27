@@ -382,6 +382,5 @@ if (!user) {
     } else {
         return interaction.reply("💥 Đột phá thất bại!");
     }
-});
 
 client.login(process.env.TOKEN);
