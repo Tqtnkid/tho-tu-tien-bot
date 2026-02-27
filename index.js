@@ -13,19 +13,21 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const DATA_FILE = "data.json";
+const mongoose = require("mongoose");
 
-function loadData() {
-  if (!fs.existsSync(DATA_FILE)) return {};
-  return JSON.parse(fs.readFileSync(DATA_FILE));
-}
+mongoose.connect(process.env.MONGO_URL)
+.then(() => console.log("🔥 Đã kết nối MongoDB"))
+.catch(err => console.log(err));
 
-function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
+const playerSchema = new mongoose.Schema({
+    userId: String,
+    linhthach: { type: Number, default: 0 },
+    exp: { type: Number, default: 0 },
+    level: { type: Number, default: 1 },
+    equipment: { type: Array, default: [] }
+});
 
-let players = loadData();
-
+const Player = mongoose.model("Player", playerSchema);
 const realms = ["Luyện Khí", "Trúc Cơ", "Kim Đan", "Nguyên Anh", "Hóa Thần"];
 const MAX_EXP = 1000;
 
@@ -77,20 +79,21 @@ client.on("interactionCreate", async interaction => {
 
   const userId = interaction.user.id;
 
-  if (!players[userId]) {
-    players[userId] = {
-      dailyattackcount: 0,
-        inventory: [],
-      lastattackreset: 0,
-      exp: 0,
-      realm: 0,
-      stone: 0,
-      lastDaily: 0,
-      lastHerb: 0
-    };
-  }
+let user = await Player.findOne({ userId: userId });
 
-  const user = players[userId];
+if (!user) {
+    user = await Player.create({
+        userId: userId,
+        dailyattackcount: 0,
+        inventory: [],
+        lastattackreset: 0,
+        exp: 0,
+        realm: 0,
+        stone: 0,
+        lastDaily: 0,
+        lastHerb: 0
+    });
+}
   const now = Date.now();
 
   // 📅 Điểm danh
@@ -105,7 +108,8 @@ user.stone += stone;
 user.exp += exp;
 user.lastDaily = now;
     
-saveData(players);
+player.linhthach += 1;
+await player.save();
 
 return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} linh thạch\n🔥 Nhận ${exp} EXP`);
   }
