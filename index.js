@@ -132,14 +132,25 @@ return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} 
   }
 
   // 📜 Check
-  if (interaction.commandName === "check") {
+if (interaction.commandName === "check") {
+
+    let player = await Player.findOne({ userId: interaction.user.id });
+
+    if (!player) {
+        player = await Player.create({
+            userId: interaction.user.id
+        });
+    }
+
+    const realmName = realms[player.level - 1] || "Luyện Khí";
+
     return interaction.reply(
-      `📜 Tu vi của bạn:
-🔥 Cảnh giới: ${realms[user.realm]}
-✨ EXP: ${user.exp}/${MAX_EXP}
-💎 Linh thạch: ${user.stone}`
+        `📜 Tu vi của bạn:\n` +
+        `🔥 Cảnh giới: ${realmName}\n` +
+        `✨ EXP: ${player.exp}/${MAX_EXP}\n` +
+        `💎 Linh thạch: ${player.linhthach}`
     );
-  }
+}
 
   // 🏆 Top
 if (interaction.commandName === "top") {
