@@ -81,13 +81,16 @@ return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} 
     if (now - user.lastHerb < 7200000)
       return interaction.reply("⏳ Chưa đủ 2 tiếng để hái tiếp!");
 
-    const reward = Math.floor(Math.random() * 3) + 1;
+    const reward = Math.floor(Math.random() * 2) + 1;
+    const exp = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
+    
     user.stone += reward;
-    user.exp += 50;
+    user.exp += exp;
     user.lastHerb = now;
+    
     saveData(players);
 
-    return interaction.reply(`🌿 Bạn hái được ${reward} linh thạch 💎 và +50 exp 🔥`);
+    return interaction.reply(`🌿 Bạn hái được Nhận ${reward}  linh thạch 💎 và Nhận ${exp} exp 🔥`);
   }
 
   // 📜 Check
