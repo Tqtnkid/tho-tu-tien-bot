@@ -32,7 +32,21 @@ const MAX_EXP = 1000;
 client.once("clientReady", async () => {
   console.log("🔥 Bot đã online!");
 
-  const commands = [
+  const commands = [{
+    name: "gacha",description: "🎲 Quay trang bị",
+    options: [
+        {
+            name: "amount",
+            description: "Số lần quay",
+            type: 4, // INTEGER
+            required: true,
+            choices: [
+                { name: "1 lần", value: 1 },
+                { name: "10 lần", value: 10 }
+            ]
+        }
+    ]
+}
     { name: "attack", description: "⚔️ Đánh quái (3 lần mỗi ngày)" },
     { name: "diemdanh", description: "📅 Điểm danh mỗi ngày" },
     { name: "haiduoc", description: "🌿 Hái dược 2 tiếng" },
@@ -70,6 +84,7 @@ client.on("interactionCreate", async interaction => {
   if (!players[userId]) {
     players[userId] = {
       dailyattackcount: 0,
+        inventory: [],
       lastattackreset: 0,
       exp: 0,
       realm: 0,
@@ -190,7 +205,106 @@ if (interaction.commandName === "attack") {
         `📊 Lượt còn lại hôm nay: ${3 - user.dailyAttackCount}/3`
     );
 }
+    // 🎲 Gacha  
+if (interaction.commandName === "gacha") {
 
+    const userId = interaction.user.id;
+
+    if (!players[userId]) {
+        players[userId] = {
+            stone: 0,
+            inventory: []
+        };
+    }
+
+    const user = players[userId];
+    const amount = interaction.options.getInteger("amount");
+
+    if (user.stone < amount) {
+        return interaction.reply("❌ Không đủ linh thạch!");
+    }
+
+    user.stone -= amount;
+
+    const items = ["Nhẫn", "Găng Tay", "Ủng", "Giáp", "Vũ Khí"];
+
+    let resultText = "";
+
+    for (let i = 0; i < amount; i++) {
+
+        // 🎯 Random phẩm chất
+        const rarityRoll = Math.random();
+        let rarity;
+        let basePower;
+
+        if (rarityRoll < 0.6) {
+            rarity = "Thường";
+            basePower = 5;
+        } else if (rarityRoll < 0.85) {
+            rarity = "Hiếm";
+            basePower = 15;
+        } else if (rarityRoll < 0.97) {
+            rarity = "Sử Thi";
+            basePower = 30;
+        } else {
+            rarity = "Truyền Thuyết";
+            basePower = 60;
+        }
+
+        // ⭐ Level càng cao càng hiếm
+        const levelRoll = Math.random();
+        let level;
+
+        if (levelRoll < 0.25) level = 1;
+        else if (levelRoll < 0.45) level = 2;
+        else if (levelRoll < 0.60) level = 3;
+        else if (levelRoll < 0.72) level = 4;
+        else if (levelRoll < 0.82) level = 5;
+        else if (levelRoll < 0.90) level = 6;
+        else if (levelRoll < 0.95) level = 7;
+        else if (levelRoll < 0.98) level = 8;
+        else if (levelRoll < 0.995) level = 9;
+        else level = 10;
+
+        const itemName = items[Math.floor(Math.random() * items.length)];
+        const power = basePower * level + Math.floor(Math.random() * 10);
+
+        const equipment = {
+            name: itemName,
+            rarity: rarity,
+            level: level,
+            power: power
+        };
+
+        user.inventory.push(equipment);
+
+        // 🟡 Nếu +10 Truyền Thuyết
+        if (level === 10 && rarity === "Truyền Thuyết") {
+
+            const { EmbedBuilder } = require("discord.js");
+
+            const embed = new EmbedBuilder()
+                .setTitle("🌟 VẬT PHẨM TỐI THƯỢNG 🌟")
+                .setDescription(
+                   `💛 ${itemName} +10 (Truyền Thuyết)\n\n` +
+                   `🔥 Lực chiến: ${power}`
+                )
+                .setColor(0xFFD700);
+
+            saveData(players);
+
+            return interaction.reply({ embeds: [embed] });
+        }
+
+        resultText += `✨ ${itemName} +${level} (${rarity}) - ⚔️ ${power}\n`;
+    }
+
+    saveData(players);
+
+    return interaction.reply(`🎲 Bạn quay ${amount} lần!\n\n${resultText}`
+    );
+}
+    
   // 🔥 Đột phá
   if (interaction.commandName === "dotpha") {
     if (user.exp < MAX_EXP)
