@@ -69,15 +69,13 @@ const stone = Math.floor(Math.random() * 2) + 1;
 
 // 🎲 Random exp 10-100
 const exp = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
-
 user.stone += stone;
 user.exp += exp;
 user.lastDaily = now;
-
 saveData(data);
 
-return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} linh thạch\n🔥 Nhận ${exp} EXP`
-);
+return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} linh thạch\n🔥 Nhận ${exp} EXP`);
+  }
 
   // 🌿 Hái dược
   if (interaction.commandName === "haiduoc") {
