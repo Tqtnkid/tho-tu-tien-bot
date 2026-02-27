@@ -142,13 +142,13 @@ if (interaction.commandName === "diemdanh") {
     const reward = Math.floor(Math.random() * 2) + 1;
     const exp = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
     
-    user.stone += reward;
+    user.linhthach += linhthach;
     user.exp += exp;
     user.lastHerb = now;
     
     await user.save();
 
-    return interaction.reply(`🌿 Bạn hái dược Nhận ${reward}  linh thạch 💎 và Nhận ${exp} exp 🔥`);
+    return interaction.reply(`🌿 Bạn hái dược Nhận ${linhthach}  linh thạch 💎 và Nhận ${exp} exp 🔥`);
   }
 
   // 📜 Check
@@ -203,7 +203,7 @@ if (interaction.commandName === "attack") {
 if (!user) {
     user = new Player({
         userId: userId,
-        stone: 0,
+        linhthach: 0,
         exp: 0,
         lastDaily: 0,
         lastHerb: 0,
@@ -228,10 +228,10 @@ if (!user) {
         return interaction.reply("⛔ Bạn đã đánh đủ 3 lần hôm nay rồi! Chờ 5h sáng reset.");
     }
 
-    const stone = Math.floor(Math.random() * 4); // 0-3
+    const linhthach = Math.floor(Math.random() * 4); // 0-3
     const exp = Math.floor(Math.random() * (50 - 10 + 1)) + 10;
 
-    user.stone += stone;
+    user.linhthach += linhthach;
     user.exp += exp;
     user.dailyAttackCount += 1;
 
@@ -239,7 +239,7 @@ if (!user) {
 
     return interaction.reply(
         `⚔️ Bạn đánh bại quái vật!\n` +
-        `💎 +${stone} linh thạch\n` +
+        `💎 +${linhthach} linh thạch\n` +
         `🔥 +${exp} EXP\n` +
         `📊 Lượt còn lại hôm nay: ${3 - user.dailyAttackCount}/3`
     );
@@ -254,7 +254,7 @@ if (interaction.commandName === "gacha") {
 if (!user) {
     user = new Player({
         userId: userId,
-        stone: 0,
+        linhthach: 0,
         exp: 0,
         lastDaily: 0,
         lastHerb: 0,
@@ -265,11 +265,11 @@ if (!user) {
 }
     const amount = interaction.options.getInteger("amount");
 
-    if (user.stone < amount) {
+    if (user.linhthach < amount) {
         return interaction.reply("❌ Không đủ linh thạch!");
     }
 
-    user.stone -= amount;
+    user.linhthach -= amount;
 
     const items = ["Nhẫn", "Găng Tay", "Ủng", "Giáp", "Vũ Khí"];
 
@@ -351,28 +351,37 @@ if (!user) {
 }
     
   // 🔥 Đột phá
-  if (interaction.commandName === "dotpha") {
-    if (user.exp < MAX_EXP)
-      return interaction.reply("❌ Chưa đủ exp để đột phá!");
+ if (interaction.commandName === "dotpha") {
+
+    let player = await Player.findOne({ userId: interaction.user.id });
+
+    if (!player) {
+        player = await Player.create({ userId: interaction.user.id });
+    }
+
+    if (player.exp < MAX_EXP) {
+        return interaction.reply("❌ Chưa đủ EXP để đột phá!");
+    }
 
     const success = Math.random() < 0.5;
 
     if (success) {
-      if (user.realm < realms.length - 1) {
-        user.realm += 1;
-        user.exp = 0;
-        saveData(players);
-        return interaction.reply(`🎉 Đột phá thành công! Bạn đã lên ${realms[user.realm]} 🔥`);
-      } else {
-        return interaction.reply("🌟 Bạn đã đạt cảnh giới cao nhất!");
-      }
+
+        if (player.level < realms.length - 1) {
+
+            player.level += 1;
+            player.exp = 0;
+
+            await player.save(); // ✅ CHỈ CẦN CÁI NÀY
+
+            return interaction.reply("🎉 Đột phá thành công!");
+        } else {
+            return interaction.reply("🌟 Bạn đã đạt cảnh giới cao nhất!");
+        }
+
     } else {
-      const loss = Math.floor(user.exp * (Math.random() * 0.05 + 0.05));
-      user.exp -= loss;
-      await user.save();
-      return interaction.reply(`💥 Đột phá thất bại! Mất ${loss} exp 😭`);
+        return interaction.reply("💥 Đột phá thất bại!");
     }
-    }
-  });
+}
 
 client.login(process.env.TOKEN);
