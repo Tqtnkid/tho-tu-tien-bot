@@ -76,8 +76,7 @@ user.lastDaily = now;
 
 saveData(data);
 
-return interaction.reply(
-  📅 Điểm danh thành công!\n💎 Nhận ${stone} linh thạch\n🔥 Nhận ${exp} EXP
+return interaction.reply(`📅 Điểm danh thành công!\n💎 Nhận ${stone} linh thạch\n🔥 Nhận ${exp} EXP`
 );
 
   // 🌿 Hái dược
