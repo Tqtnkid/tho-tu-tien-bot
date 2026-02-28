@@ -156,6 +156,8 @@ if (interaction.commandName === "diemdanh") {
      
   // 🌿 Hái dược
   if (interaction.commandName === "haiduoc") {
+     const userId = interaction.user.id;  
+      let player = await Player.findOne({ userId });
     if (now - user.lastHerb < 7200000)
       return interaction.reply("⏳ Chưa đủ 2 tiếng để hái tiếp!");
 
