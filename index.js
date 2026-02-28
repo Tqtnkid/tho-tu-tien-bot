@@ -373,13 +373,8 @@ if (interaction.commandName === "gacha") {
         message += `😢 Trang bị yếu hơn. Đã bỏ.`;
     }
 
-    await user.save();
+    await player.save();
     await interaction.reply(message);
 }
 
-    await player.save();
-
-    return interaction.reply(message);
-}
-  
 client.login(process.env.TOKEN);
