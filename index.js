@@ -78,6 +78,8 @@ function getToday5AM() {
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
+    
+    const commandName = interaction.commandName;
 
   const userId = interaction.user.id;
 
@@ -89,6 +91,8 @@ if (!user) {
         dailyattackcount: 0,
         inventory: [],
         lastattackreset: 0,
+        lastDiemDanh: 0,
+        linhthach: 0,
         exp: 0,
         realm: 0,
         stone: 0,
