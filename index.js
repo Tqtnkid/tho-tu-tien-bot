@@ -6,7 +6,7 @@ app.get("/", (req, res) => {
   res.send("🔥 Bot Tu Tiên đang chạy!");
 });
 
-const PORT = process.env.PORT; || 3000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Web server running on port " + PORT);
