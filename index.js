@@ -208,22 +208,41 @@ if (interaction.commandName === "diemdanh") {
   // 📜 Check
 if (interaction.commandName === "check") {
 
-    let player = await Player.findOne({ userId: interaction.user.id });
-
-    if (!player) {
-        player = await Player.create({
-            userId: interaction.user.id
-        });
+    const user = await User.findOne({ userId: interaction.user.id });
+    if (!user) {
+        return interaction.reply("❌ Bạn chưa tạo nhân vật!");
     }
 
-    const realmName = realms[player.level - 1] || "Luyện Khí";
+    if (!user.equipment) user.equipment = {};
 
-    return interaction.reply(
-        `📜 Tu vi của bạn:\n` +
-        `🔥 Cảnh giới: ${realmName}\n` +
-        `✨ EXP: ${player.exp}/${MAX_EXP}\n` +
-        `💎 Linh thạch: ${player.linhthach}`
-    );
+    const weapon = user.equipment.weapon;
+    const armor = user.equipment.armor;
+    const gloves = user.equipment.gloves;
+    const boots = user.equipment.boots;
+    const ring = user.equipment.ring;
+
+    const weaponPower = weapon?.power || 0;
+    const armorPower = armor?.power || 0;
+    const glovesPower = gloves?.power || 0;
+    const bootsPower = boots?.power || 0;
+    const ringPower = ring?.power || 0;
+
+    const totalPower = weaponPower + armorPower + glovesPower + bootsPower + ringPower;
+
+    let message = `📜 **Thông tin của bạn:**\n\n`;
+    message += `🔥 Cảnh giới: ${user.realm}\n`;
+    message += `✨ EXP: ${user.exp}\n`;
+    message += `💎 Linh thạch: ${user.linhThach}\n`;
+    message += `⚔ Lực chiến: ${totalPower}\n\n`;
+
+    message += `🛡 **Trang bị:**\n`;
+    message += `⚔️ Vũ khí: ${weapon ? weapon.rarity + " (" + weapon.power + ")" : "Chưa có"}\n`;
+    message += `🛡️ Giáp: ${armor ? armor.rarity + " (" + armor.power + ")" : "Chưa có"}\n`;
+    message += `🧤 Bao tay: ${gloves ? gloves.rarity + " (" + gloves.power + ")" : "Chưa có"}\n`;
+    message += `👢 Ủng: ${boots ? boots.rarity + " (" + boots.power + ")" : "Chưa có"}\n`;
+    message += `💍 Nhẫn: ${ring ? ring.rarity + " (" + ring.power + ")" : "Chưa có"}\n`;
+
+    await interaction.reply(message);
 }
 
   // 🏆 Top
@@ -328,9 +347,9 @@ if (interaction.commandName === "gacha") {
     const basePower = Math.floor(Math.random() * 30) + 10;
     const power = basePower + rarity.bonus;
 
-    let message = 🎰 ${rarity.color} ${rarity.name} ${item.name}\n;
-    message += 💪 Sức mạnh: ${power}\n;
-    message += 💎 -1 Linh thạch\n\n;
+    let message = `🎰 ${rarity.color} ${rarity.name} ${item.name}\n`;
+    message += `💪 Sức mạnh: ${power}\n`;
+    message += `💎 -1 Linh thạch\n\n`;
 
     if (!user.equipment) user.equipment = {};
 
@@ -348,10 +367,10 @@ if (interaction.commandName === "gacha") {
             rarity: rarity.name
         };
 
-        message += ✨ Trang bị mới mạnh hơn! Đã thay thế.;
+        message += `✨ Trang bị mới mạnh hơn! Đã thay thế.`;
 
     } else {
-        message +=😢 Trang bị yếu hơn. Đã bỏ.`;
+        message += `😢 Trang bị yếu hơn. Đã bỏ.`;
     }
 
     await user.save();
