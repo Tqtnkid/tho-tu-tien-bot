@@ -21,6 +21,8 @@ mongoose.connect(process.env.MONGO_URL)
 
 const playerSchema = new mongoose.Schema({
     userId: String,
+    dailyAttackCount: { type: Number, default: 0 },
+    lastAttackDate: { type: Date, default: null },
     lastDiemDanh: { type: Date, default: null },
     linhthach: { type: Number, default: 0 },
     lastdaily: { type: Number, default: 0 },
@@ -214,54 +216,63 @@ if (interaction.commandName === "top") {
 if (interaction.commandName === "attack") {
 
     const userId = interaction.user.id;
-    const now = Date.now();
+    let player = await Player.findOne({ userId });
 
-   let user = await Player.findOne({ userId });
+    if (!player) {
+        player = new Player({
+            userId,
+            exp: 0,
+            linhthach: 0,
+            level: 1,
+            dailyAttackCount: 0,
+            lastAttackDate: null
+        });
+    }
 
-if (!user) {
-    user = new Player({
-        userId: userId,
-        linhthach: 0,
-        exp: 0,
-        lastDaily: 0,
-        lastHerb: 0,
-        lastAttackReset: 0,
-        dailyAttackCount: 0
+    const now = new Date();
+
+    // Reset lượt nếu sang ngày mới
+    if (player.lastAttackDate) {
+        const last = new Date(player.lastAttackDate);
+        if (
+            last.getDate() !== now.getDate() ||
+            last.getMonth() !== now.getMonth() ||
+            last.getFullYear() !== now.getFullYear()
+        ) {
+            player.dailyAttackCount = 0;
+        }
+    }
+
+    if (player.dailyAttackCount >= 3) {
+        return interaction.reply({
+            content: "⛔ Bạn đã hết lượt đánh hôm nay (3/3)!",
+            ephemeral: true
+        });
+    }
+
+    // Random thưởng
+    const rewardLinhThach = Math.floor(Math.random() * 3) + 1;
+    const rewardExp = Math.floor(Math.random() * 31) + 20;
+
+    player.linhthach += rewardLinhThach;
+    player.exp += rewardExp;
+
+    player.dailyAttackCount += 1;
+    player.lastAttackDate = now;
+
+    await player.save();
+
+    const remaining = 3 - player.dailyAttackCount;
+
+    await interaction.reply({
+        content:
+            `⚔️ Bạn đánh bại quái vật!\n` +
+            `💎 +${rewardLinhThach} linh thạch\n` +
+            `🔥 +${rewardExp} EXP\n` +
+            `📊 Lượt còn lại hôm nay: ${remaining}/3`
     });
-    await user.save();
 }
-  
-    if (!user.dailyAttackCount) user.dailyAttackCount = 0;
-    if (!user.lastAttackReset) user.lastAttackReset = 0;
-
-    const today5AM = getToday5AM();
-
-    // Nếu đã qua 5h sáng và chưa reset hôm nay
-    if (now >= today5AM && user.lastAttackReset < today5AM) {
-        user.dailyAttackCount = 0;
-        user.lastAttackReset = today5AM;
-    }
-
-    if (user.dailyAttackCount >= 3) {
-        return interaction.reply("⛔ Bạn đã đánh đủ 3 lần hôm nay rồi! Chờ 5h sáng reset.");
-    }
-
-    const linhthach = Math.floor(Math.random() * 4); // 0-3
-    const exp = Math.floor(Math.random() * (50 - 10 + 1)) + 10;
-
-    user.linhthach += linhthach;
-    user.exp += exp;
-    user.dailyAttackCount += 1;
-
-    await user.save();
-
-    return interaction.reply(
-        `⚔️ Bạn đánh bại quái vật!\n` +
-        `💎 +${linhthach} linh thạch\n` +
-        `🔥 +${exp} EXP\n` +
-        `📊 Lượt còn lại hôm nay: ${3 - user.dailyAttackCount}/3`
-    );
-}
+    
     // 🎲 Gacha  
 if (interaction.commandName === "gacha") {
 
