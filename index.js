@@ -54,7 +54,7 @@ client.once("clientReady", async () => {
                 { name: "10 lần", value: 10 }]}]},
     { name: "attack", description: "⚔️ Đánh quái (3 lần mỗi ngày)" },
     { name: "diemdanh", description: "📅 Điểm danh mỗi ngày" },
-    { name: "haiduoc", description: "🌿 Hái dược 2 tiếng" },
+    { name: "haiduoc", description: "Hái dược nhận linh thạch và exp" },
     { name: "check", description: "📜 Xem tu vi" },
     { name: "top", description: "🏆 Top tu vi" },
     { name: "dotpha", description: "🔥 Đột phá cảnh giới" }
@@ -160,37 +160,24 @@ if (interaction.commandName === "diemdanh") {
   // 🌿 Hái dược
   if (interaction.commandName === "haiduoc") {
 
+    await interaction.deferReply(); // chống timeout
+
     const userId = interaction.user.id;
     let player = await Player.findOne({ userId });
 
     if (!player) {
-        player = new Player({
-            userId,
-            exp: 0,
-            linhthach: 0,
-            level: 1,
-            lastHerb: null
-        });
+        return interaction.editReply("❌ Bạn chưa tạo nhân vật!");
     }
 
-    const now = new Date();
+    const linhthach = Math.floor(Math.random() * 2) + 1;
+    const exp = Math.floor(Math.random() * 41) + 10; // 10 - 50 exp
 
-    if (player.lastHerb && (now - player.lastHerb) < 7200000) {
-        return interaction.reply("⏳ Chưa đủ 2 tiếng để hái tiếp!");
-    }
-
-    const reward = Math.floor(Math.random() * 2) + 1;
-    const exp = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
-
-    player.linhthach += reward;
+    player.linhthach += linhthach;
     player.exp += exp;
-    player.lastHerb = now;
 
     await player.save();
 
-    return interaction.reply(
-        `🌿 Bạn hái được ${reward} linh thạch 💎\n🔥 +${exp} EXP`
-    );
+    return interaction.editReply(`🌿 Bạn hái được ${linhthach} linh thạch\n✨ Nhận ${exp} EXP`);
 }
 
   // 📜 Check
