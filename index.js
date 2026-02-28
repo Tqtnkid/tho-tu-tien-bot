@@ -156,22 +156,39 @@ if (interaction.commandName === "diemdanh") {
      
   // 🌿 Hái dược
   if (interaction.commandName === "haiduoc") {
-     const userId = interaction.user.id;  
-      let player = await Player.findOne({ userId });
-    if (now - user.lastHerb < 7200000)
-      return interaction.reply("⏳ Chưa đủ 2 tiếng để hái tiếp!");
+
+    const userId = interaction.user.id;
+    let player = await Player.findOne({ userId });
+
+    if (!player) {
+        player = new Player({
+            userId,
+            exp: 0,
+            linhthach: 0,
+            level: 1,
+            lastHerb: null
+        });
+    }
+
+    const now = new Date();
+
+    if (player.lastHerb && (now - player.lastHerb) < 7200000) {
+        return interaction.reply("⏳ Chưa đủ 2 tiếng để hái tiếp!");
+    }
 
     const reward = Math.floor(Math.random() * 2) + 1;
     const exp = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
-    
-    user.linhthach += linhthach;
-    user.exp += exp;
-    user.lastHerb = now;
-    
+
+    player.linhthach += rewardLinhThach;
+    player.exp += exp;
+    player.lastHerb = now;
+
     await player.save();
 
-    return interaction.reply(`🌿 Bạn hái dược Nhận ${linhthach}  linh thạch 💎 và Nhận ${exp} exp 🔥`);
-  }
+    return interaction.reply(
+        `🌿 Bạn hái được ${rewardLinhThach} linh thạch 💎\n🔥 +${exp} EXP`
+    );
+}
 
   // 📜 Check
 if (interaction.commandName === "check") {
