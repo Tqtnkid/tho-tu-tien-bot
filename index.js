@@ -99,44 +99,35 @@ if (!user) {
   const now = Date.now();
 
   // 📅 Điểm danh
- if (commandName === "diemdanh") {
+ {
+    name: "diemdanh",
+    description: "Nhận thưởng điểm danh mỗi ngày",
+    async execute(interaction) {
 
-        let player = await Player.findOne({ userId: interaction.user.id });
+        const player = await Player.findOne({ userId: interaction.user.id });
 
-        // Nếu chưa có nhân vật thì tạo mới
         if (!player) {
-            player = await Player.create({
-                userId: interaction.user.id,
-                level: 1,
-                exp: 0,
-                linhthach: 0,
-                lastDiemDanh: null
+            return interaction.reply({
+                content: "❌ Bạn chưa tạo nhân vật!",
+                ephemeral: true
             });
         }
 
         const now = new Date();
+        const last = player.lastDiemDanh || new Date(0);
 
-        // Kiểm tra đã điểm danh hôm nay chưa
-        if (player.lastDiemDanh) {
-            const last = new Date(player.lastDiemDanh);
-
-            const isSameDay =
-                now.getFullYear() === last.getFullYear() &&
-                now.getMonth() === last.getMonth() &&
-                now.getDate() === last.getDate();
-
-            if (isSameDay) {
-                return interaction.reply({
-                    content: "❌ Hôm nay bạn đã điểm danh rồi!",
-                    ephemeral: true
-                });
-            }
+        // Check đã điểm danh trong 24h chưa
+        if (now - last < 24 * 60 * 60 * 1000) {
+            return interaction.reply({
+                content: "❌ Hôm nay bạn đã điểm danh rồi!",
+                ephemeral: true
+            });
         }
 
-        // 🎁 Random 1–2 linh thạch
+        // Random 1-2 linh thạch
         const reward = Math.floor(Math.random() * 2) + 1;
 
-        // 🎁 Random 10–50 EXP
+        // Random 10-50 exp
         const expReward = Math.floor(Math.random() * 41) + 10;
 
         player.linhthach += reward;
@@ -145,10 +136,11 @@ if (!user) {
 
         await player.save();
 
-        return interaction.reply(`📅 Điểm danh thành công!\n💎 +${reward} Linh Thạch\n🔥 +${expReward} EXP`
+        return interaction.reply(
+            📅 Điểm danh thành công!\n💎 +${reward} Linh Thạch\n🔥 +${expReward} EXP
         );
     }
-});
+}
 
   // 🌿 Hái dược
   if (interaction.commandName === "haiduoc") {
