@@ -23,7 +23,12 @@ mongoose.connect(process.env.MONGO_URL)
 
 const playerSchema = new mongoose.Schema({
     userId: String,
+  boots: { type: String, default: "Không có" },
+gloves: { type: String, default: "Không có" },
+ring: { type: String, default: "Không có" },
     power: { type: Number, default: 0 },
+weapon: { type: String, default: "Không có" },
+armor: { type: String, default: "Không có" },
     dailyAttackCount: { type: Number, default: 0 },
     lastAttackDate: { type: Date, default: null },
     lastDiemDanh: { type: Date, default: null },
@@ -37,6 +42,14 @@ const playerSchema = new mongoose.Schema({
 const Player = mongoose.model("Player", playerSchema);
 const realms = ["Luyện Khí", "Trúc Cơ", "Kim Đan", "Nguyên Anh", "Hóa Thần"];
 const MAX_EXP = 1000;
+function getRarity() {
+    const roll = Math.random() * 100;
+
+    if (roll < 5) return { name: "Truyền Thuyết", color: "🟡", bonus: 40 };
+    if (roll < 15) return { name: "Sử Thi", color: "🟣", bonus: 25 };
+    if (roll < 40) return { name: "Hiếm", color: "🔵", bonus: 15 };
+    return { name: "Thường", color: "⚪", bonus: 5 };
+}
 
 client.once("clientReady", async () => {
   console.log("🔥 Bot đã online!");
@@ -285,75 +298,77 @@ if (interaction.commandName === "attack") {
     // 🎲 Gacha  
 if (interaction.commandName === "gacha") {
 
-    const userId = interaction.user.id;
-    let player = await Player.findOne({ userId });
+    const cost = 5;
+
+    let player = await Player.findOne({ userId: interaction.user.id });
 
     if (!player) {
         return interaction.reply("❌ Bạn chưa tạo nhân vật!");
     }
 
-    const cost = 5;
-
     if (player.linhthach < cost) {
-        return interaction.reply("❌ Không đủ 5 linh thạch!");
+        return interaction.reply("❌ Không đủ linh thạch!");
     }
 
+    // Trừ linh thạch
     player.linhthach -= cost;
 
-    // Random sức mạnh 1 - 100
-    const newPower = Math.floor(Math.random() * 100) + 1;
+    // Random loại trang bị
+    const types = ["weapon", "armor", "boots", "gloves", "ring"];
+    const type = types[Math.floor(Math.random() * types.length)];
 
-    let message = `🎰 Bạn quay ra trang bị sức mạnh ${newPower}\n`;
+    // Random độ hiếm
+    const rarity = getRarity();
 
-    if (newPower > player.power) {
+    // Random sức mạnh
+    const basePower = Math.floor(Math.random() * 50) + 10;
+    const totalPower = basePower + rarity.bonus;
 
-        // Nếu có đồ cũ thì rã thành exp
+    let message = 🎰 Bạn quay ra ${rarity.color} ${rarity.name} ${type.toUpperCase()} sức mạnh ${totalPower}\n;
+
+    // Nếu mạnh hơn thì thay
+    if (totalPower > player.power) {
+
         if (player.power > 0) {
             player.exp += 10;
             message += "♻️ Trang bị cũ bị rã → +10 EXP\n";
         }
 
-        player.power = newPower;
-        player.equipment = `Trang bị ${newPower}`;
+        player.power = totalPower;
+
+        // Gán đúng slot
+        if (type === "weapon") {
+            player.weapon = ${rarity.color} ${rarity.name} (${totalPower});
+        }
+        if (type === "armor") {
+            player.armor = ${rarity.color} ${rarity.name} (${totalPower});
+        }
+        if (type === "boots") {
+            player.boots = ${rarity.color} ${rarity.name} (${totalPower});
+        }
+        if (type === "gloves") {
+            player.gloves = ${rarity.color} ${rarity.name} (${totalPower});
+        }
+        if (type === "ring") {
+            player.ring = ${rarity.color} ${rarity.name} (${totalPower});
+        }
 
         message += "✨ Trang bị mới mạnh hơn! Đã thay thế.";
+
     } else {
         message += "😢 Trang bị yếu hơn. Đã bỏ.";
+    }
+
+    // Check lên level
+    if (player.exp >= MAX_EXP) {
+        player.exp -= MAX_EXP;
+        player.level += 1;
+        message += "\n🔥 Bạn đã lên Level!";
     }
 
     await player.save();
 
     return interaction.reply(message);
 }
-    
-  // 🔥 Đột phá
- else if (commandName === "dotpha") {
-        const player = await Player.findOne({ userId: interaction.user.id });
-
-        if (!player) {
-            return interaction.reply("❌ Bạn chưa có nhân vật!");
-        }
-
-        const rate = 0.5; // 50% tỉ lệ
-        const random = Math.random();
-
-        if (random < rate) {
-
-            if (player.level < 10) {
-                player.level += 1;
-                player.exp = 0;
-
-                await player.save();
-
-                return interaction.reply("🎉 Đột phá thành công!");
-            } else {
-                return interaction.reply("🌟 Bạn đã đạt cảnh giới cao nhất!");
-            }
-
-        } else {
-            return interaction.reply("💥 Đột phá thất bại!");
-        }
-    }
-});
-
+  
 client.login(process.env.TOKEN);
