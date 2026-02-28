@@ -23,12 +23,14 @@ mongoose.connect(process.env.MONGO_URL)
 
 const playerSchema = new mongoose.Schema({
     userId: String,
-  boots: { type: String, default: "Không có" },
-gloves: { type: String, default: "Không có" },
-ring: { type: String, default: "Không có" },
-    power: { type: Number, default: 0 },
-weapon: { type: String, default: "Không có" },
-armor: { type: String, default: "Không có" },
+   power: { type: Number, default: 0 },
+equipment: {
+    weapon: { power: Number, rarity: String },
+    armor: { power: Number, rarity: String },
+    gloves: { power: Number, rarity: String },
+    boots: { power: Number, rarity: String },
+    ring: { power: Number, rarity: String }
+},
     dailyAttackCount: { type: Number, default: 0 },
     lastAttackDate: { type: Date, default: null },
     lastDiemDanh: { type: Date, default: null },
@@ -50,7 +52,17 @@ function getRarity() {
     if (roll < 40) return { name: "Hiếm", color: "🔵", bonus: 15 };
     return { name: "Thường", color: "⚪", bonus: 5 };
 }
+function getItemType() {
+    const items = [
+        { name: "Vũ khí ⚔️", slot: "weapon" },
+        { name: "Giáp 🛡️", slot: "armor" },
+        { name: "Bao tay 🧤", slot: "gloves" },
+        { name: "Ủng 👢", slot: "boots" },
+        { name: "Nhẫn 💍", slot: "ring" }
+    ];
 
+    return items[Math.floor(Math.random() * items.length)];
+}
 client.once("clientReady", async () => {
   console.log("🔥 Bot đã online!");
 
@@ -298,73 +310,53 @@ if (interaction.commandName === "attack") {
     // 🎲 Gacha  
 if (interaction.commandName === "gacha") {
 
-    const cost = 5;
-
-    let player = await Player.findOne({ userId: interaction.user.id });
-
-    if (!player) {
+    const user = await User.findOne({ userId: interaction.user.id });
+    if (!user) {
         return interaction.reply("❌ Bạn chưa tạo nhân vật!");
     }
 
-    if (player.linhthach < cost) {
-        return interaction.reply("❌ Không đủ linh thạch!");
+    if (user.linhThach < 1) {
+        return interaction.reply("❌ Bạn không đủ linh thạch để quay!");
     }
 
-    // Trừ linh thạch
-    player.linhthach -= cost;
+    // Trừ 1 linh thạch
+    user.linhThach -= 1;
 
-    // Random loại trang bị
-    const types = ["weapon", "armor", "boots", "gloves", "ring"];
-    const type = types[Math.floor(Math.random() * types.length)];
-
-    // Random độ hiếm
     const rarity = getRarity();
+    const item = getItemType();
 
-    // Random sức mạnh
-    const basePower = Math.floor(Math.random() * 50) + 10;
-    const totalPower = basePower + rarity.bonus;
+    const basePower = Math.floor(Math.random() * 30) + 10;
+    const power = basePower + rarity.bonus;
 
-    let message = 🎰 Bạn quay ra ${rarity.color} ${rarity.name} ${type.toUpperCase()} sức mạnh ${totalPower}\n;
+    let message = 🎰 ${rarity.color} ${rarity.name} ${item.name}\n;
+    message += 💪 Sức mạnh: ${power}\n;
+    message += 💎 -1 Linh thạch\n\n;
 
-    // Nếu mạnh hơn thì thay
-    if (totalPower > player.power) {
+    if (!user.equipment) user.equipment = {};
 
-        if (player.power > 0) {
-            player.exp += 10;
-            message += "♻️ Trang bị cũ bị rã → +10 EXP\n";
+    const oldItem = user.equipment[item.slot];
+
+    if (!oldItem || power > oldItem.power) {
+
+        if (oldItem) {
+            user.exp += 10;
+            message += ♻ Trang bị cũ bị rã → +10 EXP\n;
         }
 
-        player.power = totalPower;
+        user.equipment[item.slot] = {
+            power: power,
+            rarity: rarity.name
+        };
 
-        // Gán đúng slot
-        if (type === "weapon") {
-            player.weapon = ${rarity.color} ${rarity.name} (${totalPower});
-        }
-        if (type === "armor") {
-            player.armor = ${rarity.color} ${rarity.name} (${totalPower});
-        }
-        if (type === "boots") {
-            player.boots = ${rarity.color} ${rarity.name} (${totalPower});
-        }
-        if (type === "gloves") {
-            player.gloves = ${rarity.color} ${rarity.name} (${totalPower});
-        }
-        if (type === "ring") {
-            player.ring = ${rarity.color} ${rarity.name} (${totalPower});
-        }
-
-        message += "✨ Trang bị mới mạnh hơn! Đã thay thế.";
+        message += ✨ Trang bị mới mạnh hơn! Đã thay thế.;
 
     } else {
-        message += "😢 Trang bị yếu hơn. Đã bỏ.";
+        message +=😢 Trang bị yếu hơn. Đã bỏ.`;
     }
 
-    // Check lên level
-    if (player.exp >= MAX_EXP) {
-        player.exp -= MAX_EXP;
-        player.level += 1;
-        message += "\n🔥 Bạn đã lên Level!";
-    }
+    await user.save();
+    await interaction.reply(message);
+}
 
     await player.save();
 
