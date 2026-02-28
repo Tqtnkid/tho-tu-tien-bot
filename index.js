@@ -375,6 +375,6 @@ if (interaction.commandName === "gacha") {
 
     await player.save();
     await interaction.reply(message);
-}
+});
 
 client.login(process.env.TOKEN);
