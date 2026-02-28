@@ -280,7 +280,7 @@ if (interaction.commandName === "gacha") {
 
     const userId = interaction.user.id;
 
-    let user = await Player.findOne({ userId });
+    let player = await Player.findOne({ userId });
 
 if (!user) {
     user = new Player({
@@ -292,7 +292,7 @@ if (!user) {
         lastAttackReset: 0,
         dailyAttackCount: 0
     });
-    await user.save();
+    await player.save();
 }
     const amount = interaction.options.getInteger("amount");
 
@@ -367,7 +367,7 @@ if (!user) {
                 )
                 .setColor(0xFFD700);
 
-            await user.save();
+            await player.save();
 
             return interaction.reply({ embeds: [embed] });
         }
@@ -375,7 +375,7 @@ if (!user) {
         resultText += `✨ ${itemName} +${level} (${rarity}) - ⚔️ ${power}\n`;
     }
 
-    await user.save();
+    await player.save();
 
     return interaction.reply(`🎲 Bạn quay ${amount} lần!\n\n${resultText}`
     );
