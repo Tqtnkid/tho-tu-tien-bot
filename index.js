@@ -327,42 +327,61 @@ if (interaction.commandName === "attack") {
 }
     
     // 🎲 Gacha  
+// 🎲 Gacha
 if (interaction.commandName === "gacha") {
 
-    const user = await User.findOne({ userId: interaction.user.id });
-    if (!user) {
+    const player = await Player.findOne({ userId: interaction.user.id });
+
+    if (!player) {
         return interaction.reply("❌ Bạn chưa tạo nhân vật!");
     }
 
-    if (user.linhThach < 1) {
-        return interaction.reply("❌ Bạn không đủ linh thạch để quay!");
+    if (player.linhthach < 1) {
+        return interaction.reply("❌ Bạn không đủ linh thạch để gacha!");
     }
 
-    // Trừ 1 linh thạch
-    user.linhThach -= 1;
+    player.linhthach -= 1;
+
+    function getRarity() {
+        const roll = Math.random() * 100;
+        if (roll < 5) return { name: "Truyền Thuyết", color: "🟡", bonus: 40 };
+        if (roll < 15) return { name: "Sử Thi", color: "🟣", bonus: 25 };
+        if (roll < 40) return { name: "Hiếm", color: "🔵", bonus: 15 };
+        return { name: "Thường", color: "⚪", bonus: 5 };
+    }
+
+    function getItemType() {
+        const items = [
+            { name: "Vũ khí ⚔️", slot: "weapon" },
+            { name: "Giáp 🛡️", slot: "armor" },
+            { name: "Bao tay 🧤", slot: "gloves" },
+            { name: "Ủng 👢", slot: "boots" },
+            { name: "Nhẫn 💍", slot: "ring" }
+        ];
+        return items[Math.floor(Math.random() * items.length)];
+    }
 
     const rarity = getRarity();
     const item = getItemType();
-
-    const basePower = Math.floor(Math.random() * 30) + 10;
+    const basePower = Math.floor(Math.random() * 20) + 10;
     const power = basePower + rarity.bonus;
 
-    let message = `🎰 ${rarity.color} ${rarity.name} ${item.name}\n`;
-    message += `💪 Sức mạnh: ${power}\n`;
-    message += `💎 -1 Linh thạch\n\n`;
+    if (!player.equipment) player.equipment = {};
 
-    if (!user.equipment) user.equipment = {};
+    const oldItem = player.equipment[item.slot];
 
-    const oldItem = user.equipment[item.slot];
+    let message = `🎲 Bạn nhận được:\n`;
+    message += `${rarity.color} ${rarity.name} ${item.name}\n`;
+    message += `💥 Lực chiến: +${power}\n\n`;
 
     if (!oldItem || power > oldItem.power) {
 
         if (oldItem) {
-            user.exp += 10;
+            player.exp += 10;
             message += `♻ Trang bị cũ bị rã → +10 EXP\n`;
         }
 
-        user.equipment[item.slot] = {
+        player.equipment[item.slot] = {
             power: power,
             rarity: rarity.name
         };
@@ -370,11 +389,13 @@ if (interaction.commandName === "gacha") {
         message += `✨ Trang bị mới mạnh hơn! Đã thay thế.`;
 
     } else {
-        message += `😢 Trang bị yếu hơn. Đã bỏ.`;
+        message += `🥲 Trang bị yếu hơn. Đã bỏ.`;
     }
 
     await player.save();
-    await interaction.reply(message);
+    return interaction.reply(message);
+}
+
 });
 
 client.login(process.env.TOKEN);
