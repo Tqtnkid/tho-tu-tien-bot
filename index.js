@@ -359,7 +359,7 @@ if (interaction.commandName === "gacha") {
 
         if (oldItem) {
             user.exp += 10;
-            message += ♻ Trang bị cũ bị rã → +10 EXP\n;
+            message += `♻ Trang bị cũ bị rã → +10 EXP\n`;
         }
 
         user.equipment[item.slot] = {
