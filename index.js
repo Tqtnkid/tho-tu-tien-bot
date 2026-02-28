@@ -137,7 +137,7 @@ if (!user) {
         await player.save();
 
         return interaction.reply(
-            📅 Điểm danh thành công!\n💎 +${reward} Linh Thạch\n🔥 +${expReward} EXP
+            `📅 Điểm danh thành công!\n💎 +${reward} Linh Thạch\n🔥 +${expReward} EXP`
         );
     }
 }
