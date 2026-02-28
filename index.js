@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGO_URL)
 
 const playerSchema = new mongoose.Schema({
     userId: String,
-    lastdiemdanh: { type: date, default: null },
+    lastdiemdanh: { type: Date, default: null },
     linhthach: { type: Number, default: 0 },
     lastdaily: { type: Number, default: 0 },
     exp: { type: Number, default: 0 },
