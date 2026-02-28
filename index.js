@@ -162,7 +162,7 @@ if (!user) {
     user.exp += exp;
     user.lastHerb = now;
     
-    await user.save();
+    await player.save();
 
     return interaction.reply(`🌿 Bạn hái dược Nhận ${linhthach}  linh thạch 💎 và Nhận ${exp} exp 🔥`);
   }
