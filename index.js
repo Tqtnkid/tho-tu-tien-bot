@@ -99,49 +99,44 @@ if (!user) {
   const now = Date.now();
 
   // 📅 Điểm danh
- {
-    name: "diemdanh",
-    description: "Nhận thưởng điểm danh mỗi ngày",
-    async execute(interaction) {
+if (commandName === "diemdanh") {
 
-        const player = await Player.findOne({ userId: interaction.user.id });
+    let player = await Player.findOne({ userId: interaction.user.id });
 
-        if (!player) {
-            return interaction.reply({
-                content: "❌ Bạn chưa tạo nhân vật!",
-                ephemeral: true
-            });
-        }
-
-        const now = new Date();
-        const last = player.lastDiemDanh || new Date(0);
-
-        // Check đã điểm danh trong 24h chưa
-        if (now - last < 24 * 60 * 60 * 1000) {
-            return interaction.reply({
-                content: "❌ Hôm nay bạn đã điểm danh rồi!",
-                ephemeral: true
-            });
-        }
-
-        // Random 1-2 linh thạch
-        const reward = Math.floor(Math.random() * 2) + 1;
-
-        // Random 10-50 exp
-        const expReward = Math.floor(Math.random() * 41) + 10;
-
-        player.linhthach += reward;
-        player.exp += expReward;
-        player.lastDiemDanh = now;
-
-        await player.save();
-
-        return interaction.reply(
-            `📅 Điểm danh thành công!\n💎 +${reward} Linh Thạch\n🔥 +${expReward} EXP`
-        );
+    if (!player) {
+        player = await Player.create({
+            userId: interaction.user.id,
+            level: 1,
+            exp: 0,
+            linhthach: 0,
+            lastDiemDanh: null
+        });
     }
-}
 
+    const now = new Date();
+    const last = player.lastDiemDanh || new Date(0);
+
+    if (now - last < 24 * 60 * 60 * 1000) {
+        return interaction.reply({
+            content: "❌ Hôm nay bạn đã điểm danh rồi!",
+            ephemeral: true
+        });
+    }
+
+    const reward = Math.floor(Math.random() * 2) + 1;
+    const expReward = Math.floor(Math.random() * 41) + 10;
+
+    player.linhthach += reward;
+    player.exp += expReward;
+    player.lastDiemDanh = now;
+
+    await player.save();
+
+    return interaction.reply(
+        `📅 Điểm danh thành công!\n💎 +${reward} Linh Thạch\n🔥 +${expReward} EXP`
+    );
+}
+     
   // 🌿 Hái dược
   if (interaction.commandName === "haiduoc") {
     if (now - user.lastHerb < 7200000)
