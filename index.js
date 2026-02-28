@@ -21,6 +21,7 @@ mongoose.connect(process.env.MONGO_URL)
 
 const playerSchema = new mongoose.Schema({
     userId: String,
+    power: { type: Number, default: 0 },
     dailyAttackCount: { type: Number, default: 0 },
     lastAttackDate: { type: Date, default: null },
     lastDiemDanh: { type: Date, default: null },
@@ -28,7 +29,7 @@ const playerSchema = new mongoose.Schema({
     lastdaily: { type: Number, default: 0 },
     exp: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
-    equipment: { type: Array, default: [] }
+    equipment: { type: String, default: null }
 });
 
 const Player = mongoose.model("Player", playerSchema);
@@ -296,106 +297,44 @@ if (interaction.commandName === "attack") {
 if (interaction.commandName === "gacha") {
 
     const userId = interaction.user.id;
-
     let player = await Player.findOne({ userId });
 
-if (!user) {
-    user = new Player({
-        userId: userId,
-        linhthach: 0,
-        exp: 0,
-        lastDaily: 0,
-        lastHerb: 0,
-        lastAttackReset: 0,
-        dailyAttackCount: 0
-    });
-    await player.save();
-}
-    const amount = interaction.options.getInteger("amount");
-
-    if (user.linhthach < amount) {
-        return interaction.reply("❌ Không đủ linh thạch!");
+    if (!player) {
+        return interaction.reply("❌ Bạn chưa tạo nhân vật!");
     }
 
-    user.linhthach -= amount;
+    const cost = 5;
 
-    const items = ["Nhẫn", "Găng Tay", "Ủng", "Giáp", "Vũ Khí"];
+    if (player.linhthach < cost) {
+        return interaction.reply("❌ Không đủ 5 linh thạch!");
+    }
 
-    let resultText = "";
+    player.linhthach -= cost;
 
-    for (let i = 0; i < amount; i++) {
+    // Random sức mạnh 1 - 100
+    const newPower = Math.floor(Math.random() * 100) + 1;
 
-        // 🎯 Random phẩm chất
-        const rarityRoll = Math.random();
-        let rarity;
-        let basePower;
+    let message = `🎰 Bạn quay ra trang bị sức mạnh ${newPower}\n`;
 
-        if (rarityRoll < 0.6) {
-            rarity = "Thường";
-            basePower = 5;
-        } else if (rarityRoll < 0.85) {
-            rarity = "Hiếm";
-            basePower = 15;
-        } else if (rarityRoll < 0.97) {
-            rarity = "Sử Thi";
-            basePower = 30;
-        } else {
-            rarity = "Truyền Thuyết";
-            basePower = 60;
+    if (newPower > player.power) {
+
+        // Nếu có đồ cũ thì rã thành exp
+        if (player.power > 0) {
+            player.exp += 10;
+            message += "♻️ Trang bị cũ bị rã → +10 EXP\n";
         }
 
-        // ⭐ Level càng cao càng hiếm
-        const levelRoll = Math.random();
-        let level;
+        player.power = newPower;
+        player.equipment = `Trang bị ${newPower}`;
 
-        if (levelRoll < 0.25) level = 1;
-        else if (levelRoll < 0.45) level = 2;
-        else if (levelRoll < 0.60) level = 3;
-        else if (levelRoll < 0.72) level = 4;
-        else if (levelRoll < 0.82) level = 5;
-        else if (levelRoll < 0.90) level = 6;
-        else if (levelRoll < 0.95) level = 7;
-        else if (levelRoll < 0.98) level = 8;
-        else if (levelRoll < 0.995) level = 9;
-        else level = 10;
-
-        const itemName = items[Math.floor(Math.random() * items.length)];
-        const power = basePower * level + Math.floor(Math.random() * 10);
-
-        const equipment = {
-            name: itemName,
-            rarity: rarity,
-            level: level,
-            power: power
-        };
-
-        user.inventory.push(equipment);
-
-        // 🟡 Nếu +10 Truyền Thuyết
-        if (level === 10 && rarity === "Truyền Thuyết") {
-
-            const { EmbedBuilder } = require("discord.js");
-
-            const embed = new EmbedBuilder()
-                .setTitle("🌟 VẬT PHẨM TỐI THƯỢNG 🌟")
-                .setDescription(
-                   `💛 ${itemName} +10 (Truyền Thuyết)\n\n` +
-                   `🔥 Lực chiến: ${power}`
-                )
-                .setColor(0xFFD700);
-
-            await player.save();
-
-            return interaction.reply({ embeds: [embed] });
-        }
-
-        resultText += `✨ ${itemName} +${level} (${rarity}) - ⚔️ ${power}\n`;
+        message += "✨ Trang bị mới mạnh hơn! Đã thay thế.";
+    } else {
+        message += "😢 Trang bị yếu hơn. Đã bỏ.";
     }
 
     await player.save();
 
-    return interaction.reply(`🎲 Bạn quay ${amount} lần!\n\n${resultText}`
-    );
+    return interaction.reply(message);
 }
     
   // 🔥 Đột phá
