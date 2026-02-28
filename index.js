@@ -180,14 +180,14 @@ if (interaction.commandName === "diemdanh") {
     const reward = Math.floor(Math.random() * 2) + 1;
     const exp = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
 
-    player.linhthach += rewardLinhThach;
+    player.linhthach += reward;
     player.exp += exp;
     player.lastHerb = now;
 
     await player.save();
 
     return interaction.reply(
-        `🌿 Bạn hái được ${rewardLinhThach} linh thạch 💎\n🔥 +${exp} EXP`
+        `🌿 Bạn hái được ${reward} linh thạch 💎\n🔥 +${exp} EXP`
     );
 }
 
