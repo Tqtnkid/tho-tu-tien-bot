@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGO_URL)
 
 const playerSchema = new mongoose.Schema({
     userId: String,
-    lastdiemdanh: { type: Date, default: null },
+    lastDiemDanh: { type: Date, default: null },
     linhthach: { type: Number, default: 0 },
     lastdaily: { type: Number, default: 0 },
     exp: { type: Number, default: 0 },
@@ -103,42 +103,53 @@ if (!user) {
   const now = Date.now();
 
   // 📅 Điểm danh
-if (commandName === "diemdanh") {
+if (interaction.commandName === "diemdanh") {
 
-    let player = await Player.findOne({ userId: interaction.user.id });
+    const userId = interaction.user.id;
+
+    let player = await Player.findOne({ userId });
 
     if (!player) {
-        player = await Player.create({
-            userId: interaction.user.id,
-            level: 1,
+        player = new Player({
+            userId,
             exp: 0,
             linhthach: 0,
+            level: 1,
             lastDiemDanh: null
         });
     }
 
     const now = new Date();
-    const last = player.lastDiemDanh || new Date(0);
 
-    if (now - last < 24 * 60 * 60 * 1000) {
-        return interaction.reply({
-            content: "❌ Hôm nay bạn đã điểm danh rồi!",
-            ephemeral: true
-        });
+    if (player.lastDiemDanh) {
+        const timeDiff = now - player.lastDiemDanh;
+        const hoursPassed = timeDiff / (1000 * 60 * 60);
+
+        if (hoursPassed < 24) {
+            const hoursLeft = Math.ceil(24 - hoursPassed);
+            return interaction.reply({
+                content: `⛔ Bạn đã điểm danh rồi!\n⏳ Quay lại sau ${hoursLeft} giờ nữa.`,
+                ephemeral: true
+            });
+        }
     }
 
-    const reward = Math.floor(Math.random() * 2) + 1;
-    const expReward = Math.floor(Math.random() * 41) + 10;
+    // Random phần thưởng
+    const rewardLinhThach = Math.floor(Math.random() * 2) + 1; // 1 - 2
+    const rewardExp = Math.floor(Math.random() * 41) + 10;     // 10 - 50
 
-    player.linhthach += reward;
-    player.exp += expReward;
+    player.linhthach += rewardLinhThach;
+    player.exp += rewardExp;
     player.lastDiemDanh = now;
 
     await player.save();
 
-    return interaction.reply(
-        `📅 Điểm danh thành công!\n💎 +${reward} Linh Thạch\n🔥 +${expReward} EXP`
-    );
+    await interaction.reply({
+        content:
+            `📅 Điểm danh thành công!\n` +
+            `💎 +${rewardLinhThach} Linh Thạch\n` +
+            `🔥 +${rewardExp} EXP`
+    });
 }
      
   // 🌿 Hái dược
